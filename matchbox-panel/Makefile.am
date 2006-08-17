@@ -1,0 +1,19 @@
+AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
+            -DGETTEXT_PACKAGE=\"matchbox-panel\" \
+	    -DDEFAULT_APPLET_PATH=\"$(libdir)/matchbox-panel\"
+AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
+	    -I$(top_srcdir) -I$(top_builddir) -Werror
+
+matchbox_panelincdir = $(includedir)/matchbox-panel
+
+matchbox_panelinc_HEADERS = mb-panel.h
+
+bin_PROGRAMS = matchbox-panel
+
+matchbox_panel_SOURCES = mb-panel.c mb-panel.h
+
+matchbox_panel_LDADD = $(MATCHBOX_PANEL_LIBS)
+
+CLEANFILES = $(BUILT_SOURCES)
+DISTCLEANFILES = $(BUILT_SOURCES)
+MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
