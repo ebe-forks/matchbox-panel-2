@@ -1,0 +1,10 @@
+2006-08-18  Jorn Baayen  <jorn@openedhand.com>
+
+	* autogen.sh:
+
+	Remove gtkdocize.
+
+	* matchbox-panel/mb-panel.c: (main):
+
+	--geometry overrides child size requests.
+

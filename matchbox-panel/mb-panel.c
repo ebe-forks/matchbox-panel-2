@@ -213,6 +213,10 @@ main (int argc, char **argv)
         /* Determine window size */
         gtk_window_get_size (GTK_WINDOW (window), &panel_width, &panel_height);
 
+        /* Force size */
+        gtk_widget_set_size_request (window, panel_width, panel_height);
+        gtk_window_resize (GTK_WINDOW (window), panel_width, panel_height);
+
         /* Is this a horizontal or a vertical layout? */
         if (panel_width >= panel_height)
                 box = gtk_hbox_new (FALSE, 0);
