@@ -22,6 +22,7 @@
 #include <config.h>
 #include <gtk/gtkimage.h>
 #include <gtk/gtkeventbox.h>
+#include <gtk/gtkicontheme.h>
 #include <gdk/gdkx.h>
 #include <string.h>
 #include <unistd.h>
@@ -33,6 +34,14 @@
 #endif
 
 typedef struct {
+        GtkImage *image;
+
+        char *icon;
+        int icon_size;
+
+        GtkIconTheme *icon_theme;
+        guint icon_theme_changed_id;
+
         gboolean button_down;
 
         gboolean use_sn;
@@ -44,6 +53,11 @@ typedef struct {
 static void
 launcher_data_free (LauncherData *data)
 {
+        g_free (data->icon);
+
+        g_signal_handler_disconnect (data->icon_theme,
+                                     data->icon_theme_changed_id);
+
         g_free (data->name);
         g_strfreev (data->argv);
 
@@ -51,6 +65,152 @@ launcher_data_free (LauncherData *data)
 }
 
 #define MAX_ARGS 255
+
+/* The next two functions are based on panel-util.c from gnome-panel */
+static char *
+panel_util_icon_remove_extension (const char *icon)
+{
+        char *icon_name_no_extension;
+	char *p;
+
+        icon_name_no_extension = g_strdup (icon);
+
+	p = strrchr (icon_name_no_extension, '.');
+	if (p &&
+	    (strcmp (p, ".png") == 0 ||
+	     strcmp (p, ".xpm") == 0 ||
+	     strcmp (p, ".svg") == 0)) {
+	    *p = 0;
+	}
+
+        return icon_name_no_extension;
+}
+
+static char *
+panel_find_icon (GtkIconTheme  *icon_theme,
+		 const char    *icon_name,
+		 gint           size)
+{
+	GtkIconInfo *info;
+	char        *retval;
+        char        *icon_name_no_extension;
+
+	if (g_path_is_absolute (icon_name)) {
+		if (g_file_test (icon_name, G_FILE_TEST_EXISTS)) {
+			return g_strdup (icon_name);
+		} else {
+			char *basename;
+
+			basename = g_path_get_basename (icon_name);
+			retval = panel_find_icon (icon_theme, basename,
+						  size);
+			g_free (basename);
+
+			return retval;
+		}
+	}
+
+	/* This is needed because some .desktop files have an icon name *and*
+	 * an extension as icon */
+	icon_name_no_extension = panel_util_icon_remove_extension (icon_name);
+
+	info = gtk_icon_theme_lookup_icon (icon_theme, icon_name_no_extension, size, 0);
+        g_free (icon_name_no_extension);
+
+	if (info) {
+		retval = g_strdup (gtk_icon_info_get_filename (info));
+		gtk_icon_info_free (info);
+	} else
+		retval = NULL;
+
+	return retval;
+}
+
+GdkPixbuf *
+panel_load_icon (GtkIconTheme  *icon_theme,
+		 const char    *icon_name,
+		 int            size,
+		 char         **error_msg)
+{
+	GdkPixbuf *retval;
+	char      *file;
+	GError    *error;
+
+	g_return_val_if_fail (error_msg == NULL || *error_msg == NULL, NULL);
+
+	file = panel_find_icon (icon_theme, icon_name, size);
+	if (!file) {
+		if (error_msg)
+			*error_msg = g_strdup_printf ("Icon '%s' not found",
+						      icon_name);
+
+		return NULL;
+	}
+
+	error = NULL;
+	retval = gdk_pixbuf_new_from_file_at_scale (file,
+						    size,
+						    size,
+                                                    TRUE,
+						    &error);
+	if (error) {
+		if (error_msg)
+			*error_msg = g_strdup (error->message);
+		g_error_free (error);
+	}
+
+	g_free (file);
+
+	return retval;
+}
+
+/* Icon theme changed */
+static void
+icon_theme_changed_cb (GtkIconTheme *icon_theme,
+                       LauncherData *data)
+{
+        /* Reload icon */
+        GdkPixbuf *pixbuf;
+
+        pixbuf = panel_load_icon (icon_theme,
+                                  data->icon,
+                                  data->icon_size,
+                                  NULL);
+        gtk_image_set_from_pixbuf (data->image, pixbuf);
+        g_object_unref (pixbuf);
+}
+
+/* Screen set or changed */
+static void
+screen_changed_cb (GtkWidget    *widget,
+                   GdkScreen    *screen,
+                   LauncherData *data)
+{
+        GtkIconTheme *new_icon_theme;
+
+        /* Get associated icon theme */
+        if (!screen)
+                screen = gdk_screen_get_default ();
+
+        new_icon_theme = gtk_icon_theme_get_for_screen (screen);
+        if (data->icon_theme == new_icon_theme)
+                return;
+
+        if (data->icon_theme_changed_id) {
+                g_signal_handler_disconnect (data->icon_theme,
+                                             data->icon_theme_changed_id);
+        }
+
+        data->icon_theme = new_icon_theme;
+
+        data->icon_theme_changed_id =
+                g_signal_connect (data->icon_theme,
+                                  "changed",
+                                  G_CALLBACK (icon_theme_changed_cb),
+                                  data);
+
+        icon_theme_changed_cb (data->icon_theme, data);
+}
 
 /* Convert command line to argv array, stripping % conversions on the way */
 static char **
@@ -253,7 +413,6 @@ mb_panel_applet_create (const char *id,
         GError *error;
         char *icon, *exec, *name;
         gboolean use_sn;
-        int shortest_side;
         LauncherData *data;
         
         /* Try to find a .desktop file for @id */
@@ -287,18 +446,19 @@ mb_panel_applet_create (const char *id,
                                       "Desktop Entry",
                                       "Icon",
                                       &error);
-        if (!icon) {
-                /* An error occured */
-                g_warning ("%s", error->message);
+        icon = icon ? g_strstrip (icon) : NULL;
+        if (!icon || icon[0] == 0) {
+                if (error) {
+                        g_warning ("%s", error->message);
 
-                g_error_free (error);
+                        g_error_free (error);
+                } else
+                        g_warning ("No icon specified");
 
                 g_key_file_free (key_file);
 
                 return NULL;
         }
-
-        icon = g_strstrip (icon);
 
         /* Exec */
         error = NULL;
@@ -306,19 +466,20 @@ mb_panel_applet_create (const char *id,
                                       "Desktop Entry",
                                       "Exec",
                                       &error);
-        if (!exec) {
-                /* An error occured */
-                g_warning ("%s", error->message);
-                
-                g_error_free (error);
+        exec = exec ? g_strstrip (exec) : NULL;
+        if (!exec || exec[0] == 0) {
+                if (error) {
+                        g_warning ("%s", error->message);
+
+                        g_error_free (error);
+                } else
+                        g_warning ("No exec specified");
 
                 g_free (icon);
                 g_key_file_free (key_file);
 
                 return NULL;
         }
-
-        exec = g_strstrip (exec);
 
         /* Name */
         name = g_key_file_get_string (key_file,
@@ -335,63 +496,22 @@ mb_panel_applet_create (const char *id,
         /* Close key file */
         g_key_file_free (key_file);
 
-        /* Create image widget */
-        image = gtk_image_new ();
-
-        /* Load icon */
-        shortest_side = MIN (panel_width, panel_height);
-
-        if (icon[0] == '/') {
-                /* Absolute path specified: load icon directly */
-                GdkPixbuf *pixbuf;
-
-                error = NULL;
-                pixbuf = gdk_pixbuf_new_from_file_at_scale (icon,
-                                                            shortest_side,
-                                                            shortest_side,
-                                                            TRUE,
-                                                            &error);
-                if (!pixbuf) {
-                        /* An error occured */
-                        g_warning ("%s", error->message);
-
-                        g_error_free (error);
-                        
-                        g_free (icon);
-                        g_free (exec);
-                        g_free (name);
-                        gtk_widget_destroy (image);
-
-                        return NULL;
-                }
-
-                gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
-                g_object_unref (pixbuf);
-        } else {
-                /* No absolute path given. Load icon from icon theme */
-                char *p;
-
-                /* Strip extension, so that we can feed the filename to
-                 * GTK+'s icon name handling. */
-                p = strrchr (icon, '.');
-                if (p)
-                        *p = 0;
-
-                gtk_image_set_pixel_size (GTK_IMAGE (image), shortest_side);
-                gtk_image_set_from_icon_name (GTK_IMAGE (image),
-                                              icon,
-                                              0);
-        }
-        
-        g_free (icon);
-
-        /* Create event box */
+        /* Create widgets */
         event_box = gtk_event_box_new ();
-        
+
         gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
 
-        /* Connect to click events */
+        image = gtk_image_new ();
+
+        gtk_container_add (GTK_CONTAINER (event_box), image);
+
+        /* Set up data structure */
         data = g_slice_new (LauncherData);
+
+        data->image = GTK_IMAGE (image);
+        
+        data->icon = icon;
+        data->icon_size = MIN (panel_width, panel_height);
 
         data->button_down = FALSE;
 
@@ -406,6 +526,7 @@ mb_panel_applet_create (const char *id,
                            (GWeakNotify) launcher_data_free,
                            data);
         
+        /* Listen to events */
         g_signal_connect (event_box,
                           "button-press-event",
                           G_CALLBACK (button_press_event_cb),
@@ -419,9 +540,11 @@ mb_panel_applet_create (const char *id,
                           G_CALLBACK (grab_notify_cb),
                           data);
 
-        /* Add image to event box */
-        gtk_container_add (GTK_CONTAINER (event_box), image);
-
+        g_signal_connect (image,
+                          "screen-changed",
+                          G_CALLBACK (screen_changed_cb),
+                          data);
+        
         /* Show! */
         gtk_widget_show_all (event_box);
 

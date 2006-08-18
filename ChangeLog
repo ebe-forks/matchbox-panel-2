@@ -1,5 +1,13 @@
 2006-08-18  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/launcher.c: (launcher_data_free), (exec_to_argv),
+	(button_press_event_cb), (button_release_event_cb),
+	(grab_notify_cb), (mb_panel_applet_create):
+
+	Scale icons. Icon lookup code still needs a bit of a cleanup.
+
+2006-08-18  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/clock.c: (mb_panel_applet_create):
 
 	Add a bit of padding around the clock.
