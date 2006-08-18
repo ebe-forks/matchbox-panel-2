@@ -1,5 +1,13 @@
 2006-08-18  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/launcher.c: (exec_to_argv), (button_press_event_cb),
+	(button_release_event_cb), (grab_notify_cb),
+	(mb_panel_applet_create):
+
+	Use a GtkEventBox rather than a GtkButton.
+
+2006-08-18  Jorn Baayen  <jorn@openedhand.com>
+
 	* autogen.sh:
 
 	Remove gtkdocize.

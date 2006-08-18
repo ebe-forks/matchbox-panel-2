@@ -21,7 +21,7 @@
 
 #include <config.h>
 #include <gtk/gtkimage.h>
-#include <gtk/gtkbutton.h>
+#include <gtk/gtkeventbox.h>
 #include <gdk/gdkx.h>
 #include <string.h>
 #include <unistd.h>
@@ -33,6 +33,8 @@
 #endif
 
 typedef struct {
+        gboolean button_down;
+
         gboolean use_sn;
 
         char *name;
@@ -130,15 +132,52 @@ exec_to_argv (const char *exec)
         return argv;
 }
 
-/* Button clicked */
-static void
-clicked_cb (GtkButton    *button,
-            LauncherData *data)
+/* Button pressed on event box */
+static gboolean
+button_press_event_cb (GtkWidget      *event_box,
+                       GdkEventButton *event,
+                       LauncherData   *data)
 {
+        if (event->button != 1)
+                return TRUE;
+
+        data->button_down = TRUE;
+
+        return TRUE;
+}
+
+/* Button released on event box */
+static gboolean
+button_release_event_cb (GtkWidget      *event_box,
+                         GdkEventButton *event,
+                         LauncherData   *data)
+{
+        int x, y;
         pid_t child_pid = 0;
 #ifdef USE_LIBSN
         SnLauncherContext *context;
+#endif
 
+        if (event->button != 1 || !data->button_down)
+                return TRUE;
+
+        data->button_down = FALSE;
+
+        /* Only process if the button was released inside the button */
+        gtk_widget_translate_coordinates (event_box,
+                                          event_box->parent,
+                                          event->x,
+                                          event->y,
+                                          &x,
+                                          &y);
+
+        if (x < event_box->allocation.x ||
+            x > event_box->allocation.x + event_box->allocation.width ||
+            y < event_box->allocation.y ||
+            y > event_box->allocation.y + event_box->allocation.height)
+                return TRUE;
+
+#ifdef USE_LIBSN
         context = NULL;
 
         if (data->use_sn) {
@@ -147,11 +186,11 @@ clicked_cb (GtkButton    *button,
                 int screen;
 
                 display = gdk_x11_display_get_xdisplay
-                                (gtk_widget_get_display (GTK_WIDGET (button)));
+                              (gtk_widget_get_display (GTK_WIDGET (event_box)));
                 sn_dpy = sn_display_new (display, NULL, NULL);
 
                 screen = gdk_screen_get_number
-                                (gtk_widget_get_screen (GTK_WIDGET (button)));
+                              (gtk_widget_get_screen (GTK_WIDGET (event_box)));
                 context = sn_launcher_context_new (sn_dpy, screen);
                 sn_display_unref (sn_dpy);
           
@@ -187,6 +226,20 @@ clicked_cb (GtkButton    *button,
         if (data->use_sn)
                 sn_launcher_context_unref (context);
 #endif
+
+        return TRUE;
+}
+
+/* Someone took or released the GTK+ grab */
+static void
+grab_notify_cb (GtkWidget    *widget,
+                gboolean      was_grabbed,
+                LauncherData *data)
+{
+        if (!was_grabbed) {
+                /* It wasn't us. Reset press state */
+                data->button_down = FALSE;
+        }
 }
 
 G_MODULE_EXPORT GtkWidget *
@@ -196,7 +249,7 @@ mb_panel_applet_create (const char *id,
 {
         char *filename;
         GKeyFile *key_file;
-        GtkWidget *button, *image;
+        GtkWidget *event_box, *image;
         GError *error;
         char *icon, *exec, *name;
         gboolean use_sn;
@@ -332,16 +385,13 @@ mb_panel_applet_create (const char *id,
         
         g_free (icon);
 
-        /* Create button */
-        button = gtk_button_new ();
+        /* Create event box */
+        event_box = gtk_event_box_new ();
 
-        gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-        GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
-
-        /* Strip %-conversions from exec */
-
-        /* Connect to "clicked" signal */
+        /* Connect to click events */
         data = g_slice_new (LauncherData);
+
+        data->button_down = FALSE;
 
         data->use_sn = use_sn;
 
@@ -349,19 +399,29 @@ mb_panel_applet_create (const char *id,
 
         data->argv = exec_to_argv (exec);
         g_free (exec);
-        
-        g_signal_connect_data (button,
-                               "clicked",
-                               G_CALLBACK (clicked_cb),
-                               data,
-                               (GClosureNotify) launcher_data_free,
-                               0);
 
-        /* Add image to button */
-        gtk_container_add (GTK_CONTAINER (button), image);
+        g_object_weak_ref (G_OBJECT (event_box),
+                           (GWeakNotify) launcher_data_free,
+                           data);
+        
+        g_signal_connect (event_box,
+                          "button-press-event",
+                          G_CALLBACK (button_press_event_cb),
+                          data);
+        g_signal_connect (event_box,
+                          "button-release-event",
+                          G_CALLBACK (button_release_event_cb),
+                          data);
+        g_signal_connect (event_box,
+                          "grab-notify",
+                          G_CALLBACK (grab_notify_cb),
+                          data);
+
+        /* Add image to event box */
+        gtk_container_add (GTK_CONTAINER (event_box), image);
 
         /* Show! */
-        gtk_widget_show_all (button);
+        gtk_widget_show_all (event_box);
 
-        return button;
+        return event_box;
 };
