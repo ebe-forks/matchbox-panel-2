@@ -1,5 +1,13 @@
 2006-08-18  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/clock.c: (mb_panel_applet_create):
+	* applets/launcher.c: (mb_panel_applet_create):
+	* matchbox-panel/mb-panel.c: (main):
+
+	Name widgets, so that they can be themed.
+
+2006-08-18  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/launcher.c: (exec_to_argv), (button_press_event_cb),
 	(button_release_event_cb), (grab_notify_cb),
 	(mb_panel_applet_create):

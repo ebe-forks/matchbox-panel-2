@@ -387,6 +387,8 @@ mb_panel_applet_create (const char *id,
 
         /* Create event box */
         event_box = gtk_event_box_new ();
+        
+        gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
 
         /* Connect to click events */
         data = g_slice_new (LauncherData);

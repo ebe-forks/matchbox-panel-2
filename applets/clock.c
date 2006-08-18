@@ -105,6 +105,9 @@ mb_panel_applet_create (const char *id,
 
         /* Create label */
         label = gtk_label_new (NULL);
+
+        gtk_widget_set_name (label, "MatchboxPanelClock");
+
         timeout (GTK_LABEL (label));
 
         g_signal_connect (label,
