@@ -134,7 +134,10 @@ mb_panel_applet_create (const char *id,
                                   "style-set",
                                   G_CALLBACK (style_set_cb),
                                   GINT_TO_POINTER (panel_width));
-        }
+
+                gtk_misc_set_padding (GTK_MISC (label), 0, 5);
+        } else
+                gtk_misc_set_padding (GTK_MISC (label), 5, 0);
 
         /* Show! */
         gtk_widget_show (label);

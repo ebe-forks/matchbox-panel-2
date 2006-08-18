@@ -1,6 +1,12 @@
 2006-08-18  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/clock.c: (mb_panel_applet_create):
+
+	Add a bit of padding around the clock.
+
+2006-08-18  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/clock.c: (mb_panel_applet_create):
 	* applets/launcher.c: (mb_panel_applet_create):
 	* matchbox-panel/mb-panel.c: (main):
 
