@@ -1,5 +1,15 @@
 2006-08-19  Jorn Baayen  <jorn@openedhand.com>
 
+	* COPYING:
+	* applets/clock.c:
+	* applets/launcher.c:
+	* matchbox-panel/mb-panel.c:
+	* matchbox-panel/mb-panel.h:
+
+	License as GPL.
+
+2006-08-19  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/launcher.c: (panel_find_icon), (icon_theme_changed_cb):
 
 	Handle errors when loading icons.
