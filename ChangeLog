@@ -1,3 +1,9 @@
+2006-08-19  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/launcher.c: (panel_find_icon), (icon_theme_changed_cb):
+
+	Handle errors when loading icons.
+
 2006-08-18  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/launcher.c: (launcher_data_free), (exec_to_argv),

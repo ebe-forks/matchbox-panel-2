@@ -66,7 +66,7 @@ launcher_data_free (LauncherData *data)
 
 #define MAX_ARGS 255
 
-/* The next two functions are based on panel-util.c from gnome-panel */
+/* The next three functions are based on panel-util.c from gnome-panel */
 static char *
 panel_util_icon_remove_extension (const char *icon)
 {
@@ -114,7 +114,8 @@ panel_find_icon (GtkIconTheme  *icon_theme,
 	 * an extension as icon */
 	icon_name_no_extension = panel_util_icon_remove_extension (icon_name);
 
-	info = gtk_icon_theme_lookup_icon (icon_theme, icon_name_no_extension, size, 0);
+	info = gtk_icon_theme_lookup_icon (icon_theme,
+                                           icon_name_no_extension, size, 0);
         g_free (icon_name_no_extension);
 
 	if (info) {
@@ -171,13 +172,22 @@ icon_theme_changed_cb (GtkIconTheme *icon_theme,
 {
         /* Reload icon */
         GdkPixbuf *pixbuf;
+        char *err_msg;
 
+        err_msg = NULL;
         pixbuf = panel_load_icon (icon_theme,
                                   data->icon,
                                   data->icon_size,
-                                  NULL);
-        gtk_image_set_from_pixbuf (data->image, pixbuf);
-        g_object_unref (pixbuf);
+                                  &err_msg);
+        if (pixbuf) {
+                gtk_image_set_from_pixbuf (data->image, pixbuf);
+
+                g_object_unref (pixbuf);
+        } else {
+                g_warning (err_msg);
+
+                g_free (err_msg);
+        }
 }
 
 /* Screen set or changed */
