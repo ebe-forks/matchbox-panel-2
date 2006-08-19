@@ -1,5 +1,11 @@
 2006-08-19  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/launcher.c:
+
+	Rewrite icon lookup code.
+
+2006-08-19  Jorn Baayen  <jorn@openedhand.com>
+
 	* COPYING:
 	* applets/clock.c:
 	* applets/launcher.c:

@@ -51,103 +51,63 @@ launcher_data_free (LauncherData *data)
         g_slice_free (LauncherData, data);
 }
 
-/* The next three functions are based on panel-util.c from gnome-panel */
+/* Strips extension off filename */
 static char *
-panel_util_icon_remove_extension (const char *icon)
+strip_extension (const char *file)
 {
-        char *icon_name_no_extension;
-	char *p;
+        char *stripped, *p;
 
-        icon_name_no_extension = g_strdup (icon);
+        stripped = g_strdup (file);
 
-	p = strrchr (icon_name_no_extension, '.');
-	if (p &&
-	    (strcmp (p, ".png") == 0 ||
-	     strcmp (p, ".xpm") == 0 ||
-	     strcmp (p, ".svg") == 0)) {
-	    *p = 0;
-	}
+        p = strrchr (stripped, '.');
+        if (p &&
+            (!strcmp (p, ".png") ||
+             !strcmp (p, ".svg") ||
+             !strcmp (p, ".xpm")))
+	        *p = 0;
 
-        return icon_name_no_extension;
+        return stripped;
 }
 
+/* Find icon filename */
+/* This follows the same logic as gnome-panel. This should hopefully
+ * ensure correct behaviour. */
 static char *
-panel_find_icon (GtkIconTheme  *icon_theme,
-		 const char    *icon_name,
-		 gint           size)
+find_icon (LauncherData *data)
 {
-	GtkIconInfo *info;
-	char        *retval;
-        char        *icon_name_no_extension;
+        GtkIconInfo *info;
+        char *icon, *stripped;
 
-	if (g_path_is_absolute (icon_name)) {
-		if (g_file_test (icon_name, G_FILE_TEST_EXISTS)) {
-			return g_strdup (icon_name);
-		} else {
-			char *basename;
+        if (g_path_is_absolute (data->icon)) {
+                if (g_file_test (data->icon, G_FILE_TEST_EXISTS))
+                        return g_strdup (data->icon);
+                else
+                        icon = g_path_get_basename (data->icon);
+        } else
+                icon = data->icon;
 
-			basename = g_path_get_basename (icon_name);
-			retval = panel_find_icon (icon_theme, basename,
-						  size);
-			g_free (basename);
+        stripped = strip_extension (icon);
 
-			return retval;
-		}
-	}
+        if (icon != data->icon)
+                g_free (icon);
 
-	/* This is needed because some .desktop files have an icon name *and*
-	 * an extension as icon */
-	icon_name_no_extension = panel_util_icon_remove_extension (icon_name);
+        info = gtk_icon_theme_lookup_icon (data->icon_theme, 
+                                           stripped,
+                                           data->icon_size,
+                                           0);
+        
+        g_free (stripped);
 
-	info = gtk_icon_theme_lookup_icon (icon_theme,
-                                           icon_name_no_extension, size, 0);
-        g_free (icon_name_no_extension);
+        if (info) {
+                char *file;
 
-	if (info) {
-		retval = g_strdup (gtk_icon_info_get_filename (info));
-		gtk_icon_info_free (info);
-	} else
-		retval = NULL;
+                file = g_strdup (gtk_icon_info_get_filename (info));
 
-	return retval;
-}
+                gtk_icon_info_free (info);
 
-GdkPixbuf *
-panel_load_icon (GtkIconTheme  *icon_theme,
-		 const char    *icon_name,
-		 int            size,
-		 char         **error_msg)
-{
-	GdkPixbuf *retval;
-	char      *file;
-	GError    *error;
-
-	g_return_val_if_fail (error_msg == NULL || *error_msg == NULL, NULL);
-
-	file = panel_find_icon (icon_theme, icon_name, size);
-	if (!file) {
-		if (error_msg)
-			*error_msg = g_strdup_printf ("Icon '%s' not found",
-						      icon_name);
-
-		return NULL;
-	}
-
-	error = NULL;
-	retval = gdk_pixbuf_new_from_file_at_scale (file,
-						    size,
-						    size,
-                                                    TRUE,
-						    &error);
-	if (error) {
-		if (error_msg)
-			*error_msg = g_strdup (error->message);
-		g_error_free (error);
-	}
-
-	g_free (file);
-
-	return retval;
+                return file;
+        } else
+                return NULL;
 }
 
 /* Icon theme changed */
@@ -156,22 +116,34 @@ icon_theme_changed_cb (GtkIconTheme *icon_theme,
                        LauncherData *data)
 {
         /* Reload icon */
-        GdkPixbuf *pixbuf;
-        char *err_msg;
+        char *file;
+	GdkPixbuf *pixbuf;
+        GError *error;
 
-        err_msg = NULL;
-        pixbuf = panel_load_icon (icon_theme,
-                                  data->icon,
-                                  data->icon_size,
-                                  &err_msg);
+        file = find_icon (data);
+	if (!file) {
+                g_warning ("Icon \"%s\" not found", data->icon);
+
+                return;
+        }
+
+        error = NULL;
+        pixbuf = gdk_pixbuf_new_from_file_at_scale (file,
+                                                    data->icon_size,
+                                                    data->icon_size,
+                                                    TRUE,
+                                                    &error);
+
+        g_free (file);
+
         if (pixbuf) {
                 gtk_image_set_from_pixbuf (data->image, pixbuf);
 
                 g_object_unref (pixbuf);
         } else {
-                g_warning (err_msg);
+                g_warning (error->message);
 
-                g_free (err_msg);
+                g_error_free (error);
         }
 }
 
