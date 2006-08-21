@@ -26,6 +26,9 @@ if test x$enable_startup_notification != xno; then
   AC_DEFINE(USE_LIBSN, [1], [Has Startup Notification Support])
 fi
 
+GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`  
+AC_SUBST(GLIB_GENMARSHAL)
+
 GETTEXT_PACKAGE=matchbox-panel
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], 
@@ -39,6 +42,9 @@ Makefile
 matchbox-panel.pc
 matchbox-panel/Makefile
 applets/Makefile
+applets/clock/Makefile
+applets/launcher/Makefile
+applets/systray/Makefile
 po/Makefile.in
 po/Makefile
 ])

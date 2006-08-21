@@ -1,3 +1,21 @@
+2006-08-21  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/Makefile.am:
+	* applets/clock.c:
+	* applets/clock/Makefile.am:
+	* applets/clock/clock.c:
+	* applets/launcher.c:
+	* applets/launcher/Makefile.am:
+	* applets/launcher/launcher.c:
+	* applets/systray/Makefile.am:
+	* applets/systray/eggmarshalers.list:
+	* applets/systray/eggtraymanager.c:
+	* applets/systray/eggtraymanager.h:
+	* applets/systray/systray.c:
+	* configure.ac:
+
+	Added system tray applet & moved applets into their own folders.
+
 2006-08-19  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/launcher.c:

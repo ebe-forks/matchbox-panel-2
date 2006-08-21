@@ -115,7 +115,7 @@ mb_panel_applet_create (const char *id,
                            GUINT_TO_POINTER (timeout_id));
 
         /* Is this a vertical panel? */
-        if (MIN (panel_width, panel_height) == panel_width) {
+        if (panel_width < panel_height) {
                 /* Yes: Connect to 'style-set' signal */
                 g_signal_connect (label,
                                   "style-set",
