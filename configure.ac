@@ -26,6 +26,17 @@ if test x$enable_startup_notification != xno; then
   AC_DEFINE(USE_LIBSN, [1], [Has Startup Notification Support])
 fi
 
+AC_ARG_ENABLE(libnotify,
+  [  --enable-libnotify   enable libnotify support],
+     enable_libnotify=$enableval, enable_libnotify=yes )
+
+if test x$enable_libnotify != xno; then
+  PKG_CHECK_MODULES(LIBNOTIFY, libnotify, ,
+    AC_MSG_ERROR([*** Required libnotify library not installed ***]))
+
+  AC_DEFINE(USE_LIBNOTIFY, [1], [Has libnotify Support])
+fi
+
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`  
 AC_SUBST(GLIB_GENMARSHAL)
 
