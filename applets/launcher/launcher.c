@@ -42,8 +42,10 @@ launcher_data_free (LauncherData *data)
 {
         g_free (data->icon);
 
-        g_signal_handler_disconnect (data->icon_theme,
-                                     data->icon_theme_changed_id);
+        if (data->icon_theme_changed_id) {
+                g_signal_handler_disconnect (data->icon_theme,
+                                             data->icon_theme_changed_id);
+        }
 
         g_free (data->name);
         g_strfreev (data->argv);
@@ -481,6 +483,9 @@ mb_panel_applet_create (const char *id,
         
         data->icon = icon;
         data->icon_size = MIN (panel_width, panel_height);
+
+        data->icon_theme = NULL;
+        data->icon_theme_changed_id = 0;
 
         data->button_down = FALSE;
 

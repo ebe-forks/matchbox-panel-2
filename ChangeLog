@@ -1,5 +1,20 @@
 2006-08-21  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/Makefile.am:
+	* applets/battery/Makefile.am:
+	* applets/battery/battery.c:
+	* configure.ac:
+
+	Add skels for a battery applet. Built only if libapm is available.
+	Needs graphics.
+
+	* applets/launcher/launcher.c: (launcher_data_free),
+	(mb_panel_applet_create):
+
+	Initialize icon_theme and icon_theme_changed_id to NULL and 0.
+	
+2006-08-21  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/systray/Makefile.am:
 	* applets/systray/systray.c: (tray_icon_added_cb),
 	(message_sent_cb), (message_cancelled_cb), (screen_changed_cb),
