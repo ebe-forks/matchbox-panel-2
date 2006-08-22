@@ -1,4 +1,4 @@
-SUBDIRS = clock launcher systray
+SUBDIRS = clock launcher systray showdesktop
 
 if HAVE_LIBAPM
   SUBDIRS += battery

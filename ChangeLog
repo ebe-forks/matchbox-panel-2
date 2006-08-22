@@ -1,5 +1,25 @@
 2006-08-22  Jorn Baayen  <jorn@openedhand.com>
 
+	* configure.ac:
+	* applets/Makefile.am:
+	* applets/showdesktop/Makefile.am:
+	* applets/showdesktop/showdesktop.c:
+
+	Added 'Show Desktop' button applet. Still needs to get an icon
+	packed into it.
+
+	* applets/clock/clock.c: (timeout), (mb_panel_applet_create):
+
+	Put stuff into ClockApplet data structure.
+
+	* applets/launcher/launcher.c: (button_release_event_cb),
+	(mb_panel_applet_create):
+	* applets/systray/systray.c:
+
+	Use screen-changed signal correctly.
+
+2006-08-22  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/battery/Makefile.am:
 	* applets/battery/battery.c: (timeout), (mb_panel_applet_create):
 	* applets/battery/data/Makefile.am:

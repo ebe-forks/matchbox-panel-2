@@ -35,22 +35,22 @@ typedef struct {
 
         char *name;
         char **argv;
-} LauncherData;
+} LauncherApplet;
 
 static void
-launcher_data_free (LauncherData *data)
+launcher_applet_free (LauncherApplet *applet)
 {
-        g_free (data->icon);
+        g_free (applet->icon);
 
-        if (data->icon_theme_changed_id) {
-                g_signal_handler_disconnect (data->icon_theme,
-                                             data->icon_theme_changed_id);
+        if (applet->icon_theme_changed_id) {
+                g_signal_handler_disconnect (applet->icon_theme,
+                                             applet->icon_theme_changed_id);
         }
 
-        g_free (data->name);
-        g_strfreev (data->argv);
+        g_free (applet->name);
+        g_strfreev (applet->argv);
 
-        g_slice_free (LauncherData, data);
+        g_slice_free (LauncherApplet, applet);
 }
 
 /* Strips extension off filename */
@@ -75,27 +75,27 @@ strip_extension (const char *file)
 /* This follows the same logic as gnome-panel. This should hopefully
  * ensure correct behaviour. */
 static char *
-find_icon (LauncherData *data)
+find_icon (LauncherApplet *applet)
 {
         GtkIconInfo *info;
         char *icon, *stripped;
 
-        if (g_path_is_absolute (data->icon)) {
-                if (g_file_test (data->icon, G_FILE_TEST_EXISTS))
-                        return g_strdup (data->icon);
+        if (g_path_is_absolute (applet->icon)) {
+                if (g_file_test (applet->icon, G_FILE_TEST_EXISTS))
+                        return g_strdup (applet->icon);
                 else
-                        icon = g_path_get_basename (data->icon);
+                        icon = g_path_get_basename (applet->icon);
         } else
-                icon = data->icon;
+                icon = applet->icon;
 
         stripped = strip_extension (icon);
 
-        if (icon != data->icon)
+        if (icon != applet->icon)
                 g_free (icon);
 
-        info = gtk_icon_theme_lookup_icon (data->icon_theme, 
+        info = gtk_icon_theme_lookup_icon (applet->icon_theme, 
                                            stripped,
-                                           data->icon_size,
+                                           applet->icon_size,
                                            0);
         
         g_free (stripped);
@@ -114,32 +114,32 @@ find_icon (LauncherData *data)
 
 /* Icon theme changed */
 static void
-icon_theme_changed_cb (GtkIconTheme *icon_theme,
-                       LauncherData *data)
+icon_theme_changed_cb (GtkIconTheme   *icon_theme,
+                       LauncherApplet *applet)
 {
         /* Reload icon */
         char *file;
 	GdkPixbuf *pixbuf;
         GError *error;
 
-        file = find_icon (data);
+        file = find_icon (applet);
 	if (!file) {
-                g_warning ("Icon \"%s\" not found", data->icon);
+                g_warning ("Icon \"%s\" not found", applet->icon);
 
                 return;
         }
 
         error = NULL;
         pixbuf = gdk_pixbuf_new_from_file_at_scale (file,
-                                                    data->icon_size,
-                                                    data->icon_size,
+                                                    applet->icon_size,
+                                                    applet->icon_size,
                                                     TRUE,
                                                     &error);
 
         g_free (file);
 
         if (pixbuf) {
-                gtk_image_set_from_pixbuf (data->image, pixbuf);
+                gtk_image_set_from_pixbuf (applet->image, pixbuf);
 
                 g_object_unref (pixbuf);
         } else {
@@ -151,34 +151,33 @@ icon_theme_changed_cb (GtkIconTheme *icon_theme,
 
 /* Screen set or changed */
 static void
-screen_changed_cb (GtkWidget    *widget,
-                   GdkScreen    *screen,
-                   LauncherData *data)
+screen_changed_cb (GtkWidget      *widget,
+                   GdkScreen      *old_screen,
+                   LauncherApplet *applet)
 {
+        GdkScreen *screen;
         GtkIconTheme *new_icon_theme;
 
         /* Get associated icon theme */
-        if (!screen)
-                screen = gdk_screen_get_default ();
-
+        screen = gtk_widget_get_screen (widget);
         new_icon_theme = gtk_icon_theme_get_for_screen (screen);
-        if (data->icon_theme == new_icon_theme)
+        if (applet->icon_theme == new_icon_theme)
                 return;
 
-        if (data->icon_theme_changed_id) {
-                g_signal_handler_disconnect (data->icon_theme,
-                                             data->icon_theme_changed_id);
+        if (applet->icon_theme_changed_id) {
+                g_signal_handler_disconnect (applet->icon_theme,
+                                             applet->icon_theme_changed_id);
         }
 
-        data->icon_theme = new_icon_theme;
+        applet->icon_theme = new_icon_theme;
 
-        data->icon_theme_changed_id =
-                g_signal_connect (data->icon_theme,
+        applet->icon_theme_changed_id =
+                g_signal_connect (applet->icon_theme,
                                   "changed",
                                   G_CALLBACK (icon_theme_changed_cb),
-                                  data);
+                                  applet);
 
-        icon_theme_changed_cb (data->icon_theme, data);
+        icon_theme_changed_cb (applet->icon_theme, applet);
 }
 
 /* Convert command line to argv array, stripping % conversions on the way */
@@ -267,12 +266,12 @@ exec_to_argv (const char *exec)
 static gboolean
 button_press_event_cb (GtkWidget      *event_box,
                        GdkEventButton *event,
-                       LauncherData   *data)
+                       LauncherApplet *applet)
 {
         if (event->button != 1)
                 return TRUE;
 
-        data->button_down = TRUE;
+        applet->button_down = TRUE;
 
         return TRUE;
 }
@@ -281,7 +280,7 @@ button_press_event_cb (GtkWidget      *event_box,
 static gboolean
 button_release_event_cb (GtkWidget      *event_box,
                          GdkEventButton *event,
-                         LauncherData   *data)
+                         LauncherApplet *applet)
 {
         int x, y;
         pid_t child_pid = 0;
@@ -289,10 +288,10 @@ button_release_event_cb (GtkWidget      *event_box,
         SnLauncherContext *context;
 #endif
 
-        if (event->button != 1 || !data->button_down)
+        if (event->button != 1 || !applet->button_down)
                 return TRUE;
 
-        data->button_down = FALSE;
+        applet->button_down = FALSE;
 
         /* Only process if the button was released inside the button */
         gtk_widget_translate_coordinates (event_box,
@@ -311,7 +310,7 @@ button_release_event_cb (GtkWidget      *event_box,
 #ifdef USE_LIBSN
         context = NULL;
 
-        if (data->use_sn) {
+        if (applet->use_sn) {
                 SnDisplay *sn_dpy;
                 Display *display;
                 int screen;
@@ -325,13 +324,13 @@ button_release_event_cb (GtkWidget      *event_box,
                 context = sn_launcher_context_new (sn_dpy, screen);
                 sn_display_unref (sn_dpy);
           
-                sn_launcher_context_set_name (context, data->name);
+                sn_launcher_context_set_name (context, applet->name);
                 sn_launcher_context_set_binary_name (context,
-                                                     data->argv[0]);
+                                                     applet->argv[0]);
           
                 sn_launcher_context_initiate (context,
                                               "matchbox-panel",
-                                              data->argv[0],
+                                              applet->argv[0],
                                               CurrentTime);
         }
 #endif
@@ -342,19 +341,19 @@ button_release_event_cb (GtkWidget      *event_box,
                 break;
         case 0:
 #ifdef USE_LIBSN
-                if (data->use_sn)
+                if (applet->use_sn)
                         sn_launcher_context_setup_child_process (context);
 #endif
-                execvp (data->argv[0], data->argv);
+                execvp (applet->argv[0], applet->argv);
 
-                g_warning ("Failed to execvp() %s", data->argv[0]);
+                g_warning ("Failed to execvp() %s", applet->argv[0]);
                 _exit (1);
 
                 break;
         }
 
 #ifdef USE_LIBSN
-        if (data->use_sn)
+        if (applet->use_sn)
                 sn_launcher_context_unref (context);
 #endif
 
@@ -363,13 +362,13 @@ button_release_event_cb (GtkWidget      *event_box,
 
 /* Someone took or released the GTK+ grab */
 static void
-grab_notify_cb (GtkWidget    *widget,
-                gboolean      was_grabbed,
-                LauncherData *data)
+grab_notify_cb (GtkWidget      *widget,
+                gboolean        was_grabbed,
+                LauncherApplet *applet)
 {
         if (!was_grabbed) {
                 /* It wasn't us. Reset press state */
-                data->button_down = FALSE;
+                applet->button_down = FALSE;
         }
 }
 
@@ -384,7 +383,7 @@ mb_panel_applet_create (const char *id,
         GError *error;
         char *icon, *exec, *name;
         gboolean use_sn;
-        LauncherData *data;
+        LauncherApplet *applet;
         
         /* Try to find a .desktop file for @id */
         key_file = g_key_file_new ();
@@ -476,48 +475,47 @@ mb_panel_applet_create (const char *id,
 
         gtk_container_add (GTK_CONTAINER (event_box), image);
 
-        /* Set up data structure */
-        data = g_slice_new (LauncherData);
+        /* Set up applet structure */
+        applet = g_slice_new (LauncherApplet);
 
-        data->image = GTK_IMAGE (image);
+        applet->image = GTK_IMAGE (image);
         
-        data->icon = icon;
-        data->icon_size = MIN (panel_width, panel_height);
+        applet->icon = icon;
+        applet->icon_size = MIN (panel_width, panel_height);
 
-        data->icon_theme = NULL;
-        data->icon_theme_changed_id = 0;
+        applet->icon_theme = NULL;
+        applet->icon_theme_changed_id = 0;
 
-        data->button_down = FALSE;
+        applet->button_down = FALSE;
 
-        data->use_sn = use_sn;
+        applet->use_sn = use_sn;
 
-        data->name = name;
+        applet->name = name;
 
-        data->argv = exec_to_argv (exec);
+        applet->argv = exec_to_argv (exec);
         g_free (exec);
 
         g_object_weak_ref (G_OBJECT (event_box),
-                           (GWeakNotify) launcher_data_free,
-                           data);
+                           (GWeakNotify) launcher_applet_free,
+                           applet);
         
         /* Listen to events */
         g_signal_connect (event_box,
                           "button-press-event",
                           G_CALLBACK (button_press_event_cb),
-                          data);
+                          applet);
         g_signal_connect (event_box,
                           "button-release-event",
                           G_CALLBACK (button_release_event_cb),
-                          data);
+                          applet);
         g_signal_connect (event_box,
                           "grab-notify",
                           G_CALLBACK (grab_notify_cb),
-                          data);
-
-        g_signal_connect (image,
+                          applet);
+        g_signal_connect (event_box,
                           "screen-changed",
                           G_CALLBACK (screen_changed_cb),
-                          data);
+                          applet);
         
         /* Show! */
         gtk_widget_show_all (event_box);

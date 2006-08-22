@@ -134,12 +134,12 @@ message_cancelled_cb (EggTrayManager *manager,
 /* Screen changed */
 static void
 screen_changed_cb (GtkWidget      *widget,
-                   GdkScreen      *screen,
+                   GdkScreen      *old_screen,
                    EggTrayManager *manager)
 {
-        if (!screen)
-                screen = gdk_screen_get_default ();
+        GdkScreen *screen;
 
+        screen = gtk_widget_get_screen (widget);
         if (egg_tray_manager_check_running (screen)) {
                 g_warning ("Another system tray manager is running. "
                            "Not managing screen.");

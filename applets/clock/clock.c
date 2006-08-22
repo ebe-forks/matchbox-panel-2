@@ -10,23 +10,23 @@
 #include <time.h>
 #include <matchbox-panel/mb-panel.h>
 
-/* Applet destroyed */
-static void
-destroy_cb (GtkLabel *label)
-{
-        guint timeout_id;
-        
-        /* Remove timeout */
-        timeout_id =
-                GPOINTER_TO_UINT
-                        (g_object_get_data (G_OBJECT (label), "timeout-id"));
+typedef struct {
+        GtkLabel *label;
 
-        g_source_remove (timeout_id);
+        guint timeout_id;
+} ClockApplet;
+
+static void
+clock_applet_free (ClockApplet *applet)
+{
+        g_source_remove (applet->timeout_id);
+
+        g_slice_free (ClockApplet, applet);
 }
 
 /* Called every minute */
 static gboolean
-timeout (GtkLabel *label)
+timeout (ClockApplet *applet)
 {
         time_t t;
         char str[6];
@@ -35,7 +35,7 @@ timeout (GtkLabel *label)
         t = time (NULL);
         strftime (str, 6, "%H:%M", localtime (&t));
         
-        gtk_label_set_text (label, str);
+        gtk_label_set_text (applet->label, str);
 
         /* Keep going */
         return TRUE;
@@ -43,21 +43,15 @@ timeout (GtkLabel *label)
 
 /* Called on the next minute after applet creation */
 static gboolean
-initial_timeout (GtkLabel *label)
+initial_timeout (ClockApplet *applet)
 {
-        guint timeout_id;
-        
         /* Update label */
-        timeout (label);
+        timeout (applet);
         
         /* Install a new timeout that is called every minute */
-        timeout_id = g_timeout_add (60 * 1000,
-                                    (GSourceFunc) timeout,
-                                    label);
-        
-        g_object_set_data (G_OBJECT (label),
-                           "timeout-id",
-                           GUINT_TO_POINTER (timeout_id));
+        applet->timeout_id = g_timeout_add (60 * 1000,
+                                            (GSourceFunc) timeout,
+                                            applet);
         
         /* Don't call this again */
         return FALSE;
@@ -85,34 +79,33 @@ mb_panel_applet_create (const char *id,
                         int         panel_width,
                         int         panel_height)
 {
+        ClockApplet *applet;
         GtkWidget *label;
-        guint timeout_id;
         time_t t;
         struct tm *local_time;
 
+        /* Create applet data structure */
+        applet = g_slice_new (ClockApplet);
+
         /* Create label */
         label = gtk_label_new (NULL);
+        applet->label = GTK_LABEL (label);
 
         gtk_widget_set_name (label, "MatchboxPanelClock");
 
-        timeout (GTK_LABEL (label));
-
-        g_signal_connect (label,
-                          "destroy",
-                          G_CALLBACK (destroy_cb),
-                          NULL);
+        g_object_weak_ref (G_OBJECT (label),
+                           (GWeakNotify) clock_applet_free,
+                           applet);
 
         /* Set up a timeout to be called when we hit the next minute */
         t = time (NULL);
         local_time = localtime (&t);
         
-        timeout_id = g_timeout_add ((60 - local_time->tm_sec) * 1000,
-                                    (GSourceFunc) initial_timeout,
-                                    label);
+        applet->timeout_id = g_timeout_add ((60 - local_time->tm_sec) * 1000,
+                                            (GSourceFunc) initial_timeout,
+                                            applet);
         
-        g_object_set_data (G_OBJECT (label),
-                           "timeout-id",
-                           GUINT_TO_POINTER (timeout_id));
+        timeout (applet);
 
         /* Is this a vertical panel? */
         if (panel_width < panel_height) {
@@ -121,10 +114,7 @@ mb_panel_applet_create (const char *id,
                                   "style-set",
                                   G_CALLBACK (style_set_cb),
                                   GINT_TO_POINTER (panel_width));
-
-                gtk_misc_set_padding (GTK_MISC (label), 0, 5);
-        } else
-                gtk_misc_set_padding (GTK_MISC (label), 5, 0);
+        }
 
         /* Show! */
         gtk_widget_show (label);
