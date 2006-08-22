@@ -176,17 +176,27 @@ find_icon (GtkIconTheme *icon_theme,
 static void
 reload_icon (MBPanelScalingImage *image)
 {
-        int width, height;
+        int size;
         char *file;
 	GdkPixbuf *pixbuf;
         GError *error;
 
-        width  = GTK_WIDGET (image)->allocation.width;
-        height = GTK_WIDGET (image)->allocation.height;
+        if (!image->priv->icon) {
+                gtk_image_set_from_pixbuf (GTK_IMAGE (image), NULL);
+
+                return;
+        }
+
+        /* Because we do not request a size initially, we get allocated
+         * a slice that is the width (if vertical) or height (if horizontal)
+         * of the panel. This is the largest dimension, and it is the one
+         * we need. */
+        size = MAX (GTK_WIDGET (image)->allocation.width,
+                    GTK_WIDGET (image)->allocation.height);
 
         file = find_icon (image->priv->icon_theme,
                           image->priv->icon,
-                          MIN (width, height));
+                          size);
 	if (!file) {
                 g_warning ("Icon \"%s\" not found", image->priv->icon);
 
@@ -195,8 +205,8 @@ reload_icon (MBPanelScalingImage *image)
 
         error = NULL;
         pixbuf = gdk_pixbuf_new_from_file_at_scale (file,
-                                                    width,
-                                                    height,
+                                                    size,
+                                                    size,
                                                     TRUE,
                                                     &error);
 
@@ -301,7 +311,7 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
                           "icon",
                           "The loaded icon.",
                           NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+                          G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
 }
@@ -334,10 +344,10 @@ mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
                                  const char          *icon)
 {
         g_return_if_fail (MB_PANEL_IS_SCALING_IMAGE (image));
-        g_return_if_fail (icon);
 
         g_free (image->priv->icon);
-        image->priv->icon = g_strdup (icon);
+        if (icon)
+                image->priv->icon = g_strdup (icon);
 
         if (GTK_WIDGET_REALIZED (image))
                 reload_icon (image);

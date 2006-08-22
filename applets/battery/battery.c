@@ -6,14 +6,13 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <gtk/gtkimage.h>
 #include <apm.h>
 #include <matchbox-panel/mb-panel.h>
+#include <matchbox-panel/mb-panel-scaling-image.h>
 
 typedef struct {
-        GtkImage *image;
-        guint size;
-        const char *last_img;
+        MBPanelScalingImage *image;
+        const char *last_icon;
 
         guint timeout_id;
 } BatteryApplet;
@@ -32,75 +31,58 @@ static gboolean
 timeout (BatteryApplet *applet)
 {
         apm_info info;
-        const char *img;
-        GdkPixbuf *pixbuf;
-        GError *error;
+        const char *icon;
 
         apm_read (&info);
 
         if (info.battery_status == BATTERY_STATUS_ABSENT)
-                img = DATADIR "/ac-adapter.png";
+                icon = DATADIR "/ac-adapter.png";
         else {
                 if (info.ac_line_status == AC_LINE_STATUS_ON) {
                         if (info.battery_percentage < 10)
-                                img = DATADIR "battery-charging-000.png";
+                                icon = DATADIR "battery-charging-000.png";
                         else if (info.battery_percentage < 30)
-                                img = DATADIR "battery-charging-020.png";
+                                icon = DATADIR "battery-charging-020.png";
                         else if (info.battery_percentage < 50)
-                                img = DATADIR "battery-charging-040.png";
+                                icon = DATADIR "battery-charging-040.png";
                         else if (info.battery_percentage < 70)
-                                img = DATADIR "battery-charging-060.png";
+                                icon = DATADIR "battery-charging-060.png";
                         else if (info.battery_percentage < 90)
-                                img = DATADIR "battery-charging-080.png";
+                                icon = DATADIR "battery-charging-080.png";
                         else
-                                img = DATADIR "battery-charging-100.png";
+                                icon = DATADIR "battery-charging-100.png";
                 } else {
                         if (info.battery_percentage < 10)
-                                img = DATADIR "battery-discharging-000.png";
+                                icon = DATADIR "battery-discharging-000.png";
                         else if (info.battery_percentage < 30)
-                                img = DATADIR "battery-discharging-020.png";
+                                icon = DATADIR "battery-discharging-020.png";
                         else if (info.battery_percentage < 50)
-                                img = DATADIR "battery-discharging-040.png";
+                                icon = DATADIR "battery-discharging-040.png";
                         else if (info.battery_percentage < 70)
-                                img = DATADIR "battery-discharging-060.png";
+                                icon = DATADIR "battery-discharging-060.png";
                         else if (info.battery_percentage < 90)
-                                img = DATADIR "battery-discharging-080.png";
+                                icon = DATADIR "battery-discharging-080.png";
                         else
-                                img = DATADIR "battery-discharging-100.png";
+                                icon = DATADIR "battery-discharging-100.png";
                 }
         }
 
         /* Don't recreate pixbuf if we will display the same image */
-        if (img == applet->last_img)
+        if (icon == applet->last_icon)
                 return TRUE;
 
-        applet->last_img = img;
-
-        /* Load pixbuf */
-        error = NULL;
-        pixbuf = gdk_pixbuf_new_from_file_at_scale (img,
-                                                    applet->size,
-                                                    applet->size,
-                                                    TRUE,
-                                                    &error);
-        if (pixbuf) {
-                gtk_image_set_from_pixbuf (applet->image, pixbuf);
+        applet->last_icon = icon;
         
-                g_object_unref (pixbuf);
-        } else {
-                g_warning (error->message);
-
-                g_error_free (error);
-        }
+        /* Load icon */
+        mb_panel_scaling_image_set_icon (applet->image, icon);
 
         /* Keep going */
         return TRUE;
 }
 
 G_MODULE_EXPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height)
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation)
 {
         BatteryApplet *applet;
         GtkWidget *image;
@@ -115,12 +97,11 @@ mb_panel_applet_create (const char *id,
         /* Create applet data structure */
         applet = g_slice_new (BatteryApplet);
 
-        applet->size = MIN (panel_width, panel_height);
-        applet->last_img = NULL;
+        applet->last_icon = NULL;
 
         /* Create image */
-        image = gtk_image_new ();
-        applet->image = GTK_IMAGE (image);
+        image = mb_panel_scaling_image_new (NULL);
+        applet->image = MB_PANEL_SCALING_IMAGE (image);
 
         gtk_widget_set_name (image, "MatchboxPanelBatteryMonitor");
 

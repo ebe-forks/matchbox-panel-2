@@ -151,12 +151,10 @@ screen_changed_cb (GtkWidget      *widget,
 }
 
 G_MODULE_EXPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height)
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation)
 {
         EggTrayManager *manager;
-        GtkOrientation orientation;
         GtkWidget *box;
 
 #ifdef USE_LIBNOTIFY
@@ -164,16 +162,11 @@ mb_panel_applet_create (const char *id,
                 notify_init ("matchbox-panel");
 #endif
 
-        /* Is this a vertical panel? */
-        if (panel_width >= panel_height) {
-                orientation = GTK_ORIENTATION_HORIZONTAL;
-
+        /* Is this a horizontal panel? */
+        if (orientation == GTK_ORIENTATION_HORIZONTAL)
                 box = gtk_hbox_new (0, FALSE);
-        } else {
-                orientation = GTK_ORIENTATION_VERTICAL;
-                
+        else
                 box = gtk_vbox_new (0, FALSE);
-        }
 
         gtk_widget_set_name (box, "MatchboxPanelSystemTray");
 

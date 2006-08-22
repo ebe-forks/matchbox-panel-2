@@ -18,17 +18,15 @@ static GList *open_modules = NULL; /* List of open modules */
 
 /* Load applet @name with ID @id */
 static GtkWidget *
-load_applet (const char *name,
-             const char *id,
-             int         panel_width,
-             int         panel_height)
+load_applet (const char    *name,
+             const char    *id,
+             GtkOrientation orientation)
 {
         const char *applet_path;
         char *path;
         GModule *module;
-        GtkWidget * (* create_func) (const char *id,
-                                     int         panel_width,
-                                     int         panel_height);
+        GtkWidget * (* create_func) (const char    *id,
+                                     GtkOrientation orientation);
 
         /* Get MATCHBOX_PANEL_APPLET_PATH */
         applet_path = g_getenv ("MATCHBOX_PANEL_APPLET_PATH");
@@ -74,21 +72,20 @@ load_applet (const char *name,
         open_modules = g_list_prepend (open_modules, module);
 
         /* Run mb_panel_applet_create */
-        return create_func (id, panel_width, panel_height);
+        return create_func (id, orientation);
 }
 
 /* Load the applets from @applets_desc into @box, packing them using
  * @pack_func */
 static void
-load_applets (const char *applets_desc,
-              GtkBox     *box,
-              void     ( *pack_func) (GtkBox    *box,
-                                      GtkWidget *widget,
-                                      gboolean   expand,
-                                      gboolean   fill,
-                                      guint      padding),
-              int         panel_width,
-              int         panel_height)
+load_applets (const char    *applets_desc,
+              GtkBox        *box,
+              void        ( *pack_func) (GtkBox    *box,
+                                         GtkWidget *widget,
+                                         gboolean   expand,
+                                         gboolean   fill,
+                                         guint      padding),
+              GtkOrientation orientation)
 {
         char **applets;
         int i;
@@ -108,8 +105,7 @@ load_applets (const char *applets_desc,
 
                 applet = load_applet (bits[0],
                                       bits[1],
-                                      panel_width,
-                                      panel_height);
+                                      orientation);
                 if (applet)
                         pack_func (box, applet, FALSE, FALSE, 0);
 
@@ -128,6 +124,7 @@ main (int argc, char **argv)
         char *geometry = NULL, *start_applets = NULL, *end_applets = NULL;
         GtkWidget *window, *box;
         int panel_width, panel_height;
+        GtkOrientation orientation;
 
         GOptionEntry option_entries[] = {
                 { "geometry", 0, 0, G_OPTION_ARG_STRING, &geometry,
@@ -208,10 +205,15 @@ main (int argc, char **argv)
         gtk_window_resize (GTK_WINDOW (window), panel_width, panel_height);
 
         /* Is this a horizontal or a vertical layout? */
-        if (panel_width >= panel_height)
+        if (panel_width >= panel_height) {
+                orientation = GTK_ORIENTATION_HORIZONTAL;
+
                 box = gtk_hbox_new (FALSE, 0);
-        else
+        } else {
+                orientation = GTK_ORIENTATION_VERTICAL;
+                
                 box = gtk_vbox_new (FALSE, 0);
+        }
 
         gtk_container_add (GTK_CONTAINER (window), box);
         gtk_widget_show (box);
@@ -219,10 +221,12 @@ main (int argc, char **argv)
         /* Load applets */
         load_applets (start_applets,
                       GTK_BOX (box),
-                      gtk_box_pack_start, panel_width, panel_height);
+                      gtk_box_pack_start,
+                      orientation);
         load_applets (end_applets,
                       GTK_BOX (box),
-                      gtk_box_pack_end, panel_width, panel_height);
+                      gtk_box_pack_end,
+                      orientation);
 
         /* And go! */
         gtk_widget_show (window);

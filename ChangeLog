@@ -1,5 +1,24 @@
 2006-08-22  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/battery/battery.c: (timeout), (mb_panel_applet_create):
+	* applets/clock/clock.c: (initial_timeout),
+	(mb_panel_applet_create):
+	* applets/launcher/launcher.c: (grab_notify_cb),
+	(mb_panel_applet_create):
+	* applets/showdesktop/showdesktop.c: (button_toggled_cb),
+	(mb_panel_applet_create):
+	* applets/systray/systray.c: (screen_changed_cb),
+	(mb_panel_applet_create):
+	* matchbox-panel/mb-panel-scaling-image.c: (reload_icon),
+	(mb_panel_scaling_image_class_init),
+	(mb_panel_scaling_image_set_icon):
+	* matchbox-panel/mb-panel.c: (load_applet), (load_applets), (main):
+	* matchbox-panel/mb-panel.h:
+
+	Better size handling. No more manual sizing of applets needed.
+
+2006-08-22  Jorn Baayen  <jorn@openedhand.com>
+
 	* matchbox-panel/mb-panel-scaling-image.c: (find_icon),
 	(reload_icon), (icon_theme_changed_cb),
 	(mb_panel_scaling_image_screen_changed),

@@ -126,13 +126,11 @@ button_toggled_cb (GtkToggleButton   *button,
 }
 
 G_MODULE_EXPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height)
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation)
 {
         ShowDesktopApplet *applet;
         GtkWidget *button, *image;
-        int shortest_side;
 
         /* Create applet data structure */
         applet = g_slice_new (ShowDesktopApplet);
@@ -147,11 +145,6 @@ mb_panel_applet_create (const char *id,
         GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
-
-        shortest_side = MIN (panel_width, panel_height);
-        gtk_widget_set_size_request (button,
-                                     shortest_side,
-                                     shortest_side);
 
         image = mb_panel_scaling_image_new ("gnome-fs-desktop");
         gtk_container_add (GTK_CONTAINER (button), image);

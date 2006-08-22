@@ -14,9 +14,8 @@
 G_BEGIN_DECLS
 
 G_MODULE_IMPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height);
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation);
 
 G_END_DECLS
 

@@ -232,14 +232,12 @@ grab_notify_cb (GtkWidget      *widget,
 }
 
 G_MODULE_EXPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height)
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation)
 {
         char *filename;
         GKeyFile *key_file;
         GtkWidget *event_box, *image;
-        int shortest_side;
         GError *error;
         char *icon, *exec, *name;
         gboolean use_sn;
@@ -330,11 +328,6 @@ mb_panel_applet_create (const char *id,
         event_box = gtk_event_box_new ();
 
         gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
-
-        shortest_side = MIN (panel_width, panel_height);
-        gtk_widget_set_size_request (event_box,
-                                     shortest_side,
-                                     shortest_side);
 
         image = mb_panel_scaling_image_new (icon);
         g_free (icon);

@@ -57,27 +57,9 @@ initial_timeout (ClockApplet *applet)
         return FALSE;
 }
 
-/* GtkStyle set */
-static void
-style_set_cb (GtkWidget *widget,
-              GtkStyle  *old_style,
-              gpointer   user_data)
-{
-        GtkRequisition requisition;
-
-        gtk_widget_size_request (widget, &requisition);
-
-        /* Do we have enough space for a horizontal clock? */
-        if (GPOINTER_TO_INT (user_data) < requisition.width) {
-                /* No: Rotate label 90 degrees */
-                gtk_label_set_angle (GTK_LABEL (widget), 90.0);
-        }
-}
-
 G_MODULE_EXPORT GtkWidget *
-mb_panel_applet_create (const char *id,
-                        int         panel_width,
-                        int         panel_height)
+mb_panel_applet_create (const char    *id,
+                        GtkOrientation orientation)
 {
         ClockApplet *applet;
         GtkWidget *label;
@@ -97,6 +79,12 @@ mb_panel_applet_create (const char *id,
                            (GWeakNotify) clock_applet_free,
                            applet);
 
+        /* Is this a vertical panel? */
+        if (orientation == GTK_ORIENTATION_VERTICAL) {
+                /* Yes: Rotate label */
+                gtk_label_set_angle (GTK_LABEL (label), 90.0);
+        }
+        
         /* Set up a timeout to be called when we hit the next minute */
         t = time (NULL);
         local_time = localtime (&t);
@@ -106,15 +94,6 @@ mb_panel_applet_create (const char *id,
                                             applet);
         
         timeout (applet);
-
-        /* Is this a vertical panel? */
-        if (panel_width < panel_height) {
-                /* Yes: Connect to 'style-set' signal */
-                g_signal_connect (label,
-                                  "style-set",
-                                  G_CALLBACK (style_set_cb),
-                                  GINT_TO_POINTER (panel_width));
-        }
 
         /* Show! */
         gtk_widget_show (label);
