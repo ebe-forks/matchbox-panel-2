@@ -7,13 +7,12 @@
  */
 
 #include <config.h>
-#include <gtk/gtkimage.h>
 #include <gtk/gtkeventbox.h>
-#include <gtk/gtkicontheme.h>
 #include <gdk/gdkx.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <matchbox-panel/mb-panel.h>
+#include <matchbox-panel/mb-panel-scaling-image.h>
 
 #ifdef USE_LIBSN
   #define SN_API_NOT_YET_FROZEN 1
@@ -22,12 +21,6 @@
 
 typedef struct {
         GtkImage *image;
-
-        char *icon;
-        int icon_size;
-
-        GtkIconTheme *icon_theme;
-        guint icon_theme_changed_id;
 
         gboolean button_down;
 
@@ -40,144 +33,10 @@ typedef struct {
 static void
 launcher_applet_free (LauncherApplet *applet)
 {
-        g_free (applet->icon);
-
-        if (applet->icon_theme_changed_id) {
-                g_signal_handler_disconnect (applet->icon_theme,
-                                             applet->icon_theme_changed_id);
-        }
-
         g_free (applet->name);
         g_strfreev (applet->argv);
 
         g_slice_free (LauncherApplet, applet);
-}
-
-/* Strips extension off filename */
-static char *
-strip_extension (const char *file)
-{
-        char *stripped, *p;
-
-        stripped = g_strdup (file);
-
-        p = strrchr (stripped, '.');
-        if (p &&
-            (!strcmp (p, ".png") ||
-             !strcmp (p, ".svg") ||
-             !strcmp (p, ".xpm")))
-	        *p = 0;
-
-        return stripped;
-}
-
-/* Find icon filename */
-/* This follows the same logic as gnome-panel. This should hopefully
- * ensure correct behaviour. */
-static char *
-find_icon (LauncherApplet *applet)
-{
-        GtkIconInfo *info;
-        char *icon, *stripped;
-
-        if (g_path_is_absolute (applet->icon)) {
-                if (g_file_test (applet->icon, G_FILE_TEST_EXISTS))
-                        return g_strdup (applet->icon);
-                else
-                        icon = g_path_get_basename (applet->icon);
-        } else
-                icon = applet->icon;
-
-        stripped = strip_extension (icon);
-
-        if (icon != applet->icon)
-                g_free (icon);
-
-        info = gtk_icon_theme_lookup_icon (applet->icon_theme, 
-                                           stripped,
-                                           applet->icon_size,
-                                           0);
-        
-        g_free (stripped);
-
-        if (info) {
-                char *file;
-
-                file = g_strdup (gtk_icon_info_get_filename (info));
-
-                gtk_icon_info_free (info);
-
-                return file;
-        } else
-                return NULL;
-}
-
-/* Icon theme changed */
-static void
-icon_theme_changed_cb (GtkIconTheme   *icon_theme,
-                       LauncherApplet *applet)
-{
-        /* Reload icon */
-        char *file;
-	GdkPixbuf *pixbuf;
-        GError *error;
-
-        file = find_icon (applet);
-	if (!file) {
-                g_warning ("Icon \"%s\" not found", applet->icon);
-
-                return;
-        }
-
-        error = NULL;
-        pixbuf = gdk_pixbuf_new_from_file_at_scale (file,
-                                                    applet->icon_size,
-                                                    applet->icon_size,
-                                                    TRUE,
-                                                    &error);
-
-        g_free (file);
-
-        if (pixbuf) {
-                gtk_image_set_from_pixbuf (applet->image, pixbuf);
-
-                g_object_unref (pixbuf);
-        } else {
-                g_warning (error->message);
-
-                g_error_free (error);
-        }
-}
-
-/* Screen set or changed */
-static void
-screen_changed_cb (GtkWidget      *widget,
-                   GdkScreen      *old_screen,
-                   LauncherApplet *applet)
-{
-        GdkScreen *screen;
-        GtkIconTheme *new_icon_theme;
-
-        /* Get associated icon theme */
-        screen = gtk_widget_get_screen (widget);
-        new_icon_theme = gtk_icon_theme_get_for_screen (screen);
-        if (applet->icon_theme == new_icon_theme)
-                return;
-
-        if (applet->icon_theme_changed_id) {
-                g_signal_handler_disconnect (applet->icon_theme,
-                                             applet->icon_theme_changed_id);
-        }
-
-        applet->icon_theme = new_icon_theme;
-
-        applet->icon_theme_changed_id =
-                g_signal_connect (applet->icon_theme,
-                                  "changed",
-                                  G_CALLBACK (icon_theme_changed_cb),
-                                  applet);
-
-        icon_theme_changed_cb (applet->icon_theme, applet);
 }
 
 /* Convert command line to argv array, stripping % conversions on the way */
@@ -380,6 +239,7 @@ mb_panel_applet_create (const char *id,
         char *filename;
         GKeyFile *key_file;
         GtkWidget *event_box, *image;
+        int shortest_side;
         GError *error;
         char *icon, *exec, *name;
         gboolean use_sn;
@@ -471,7 +331,13 @@ mb_panel_applet_create (const char *id,
 
         gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
 
-        image = gtk_image_new ();
+        shortest_side = MIN (panel_width, panel_height);
+        gtk_widget_set_size_request (event_box,
+                                     shortest_side,
+                                     shortest_side);
+
+        image = mb_panel_scaling_image_new (icon);
+        g_free (icon);
 
         gtk_container_add (GTK_CONTAINER (event_box), image);
 
@@ -480,12 +346,6 @@ mb_panel_applet_create (const char *id,
 
         applet->image = GTK_IMAGE (image);
         
-        applet->icon = icon;
-        applet->icon_size = MIN (panel_width, panel_height);
-
-        applet->icon_theme = NULL;
-        applet->icon_theme_changed_id = 0;
-
         applet->button_down = FALSE;
 
         applet->use_sn = use_sn;
@@ -511,10 +371,6 @@ mb_panel_applet_create (const char *id,
         g_signal_connect (event_box,
                           "grab-notify",
                           G_CALLBACK (grab_notify_cb),
-                          applet);
-        g_signal_connect (event_box,
-                          "screen-changed",
-                          G_CALLBACK (screen_changed_cb),
                           applet);
         
         /* Show! */

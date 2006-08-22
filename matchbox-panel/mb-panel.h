@@ -6,8 +6,8 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#ifndef __MATCHBOX_PANEL_H__
-#define __MATCHBOX_PANEL_H__
+#ifndef __MB_PANEL_H__
+#define __MB_PANEL_H__
 
 #include <gtk/gtkwidget.h>
 
@@ -20,4 +20,4 @@ mb_panel_applet_create (const char *id,
 
 G_END_DECLS
 
-#endif /* __MATCHBOX_PANEL_H__ */
+#endif /* __MB_PANEL_H__ */

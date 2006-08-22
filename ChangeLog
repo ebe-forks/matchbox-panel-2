@@ -1,5 +1,21 @@
 2006-08-22  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/clock/clock.c:
+	* applets/launcher/launcher.c: (mb_panel_applet_create):
+	* applets/showdesktop/showdesktop.c: (mb_panel_applet_create):
+	* matchbox-panel/Makefile.am:
+	* matchbox-panel/mb-panel-scaling-image.c:
+	* matchbox-panel/mb-panel-scaling-image.h:
+	* matchbox-panel/mb-panel.h:
+
+	Moved scaling icon theme icon logic into its own GtkImage subclass,
+	and use this in the launcher and showdesktop applets.
+
+	Don't look at MBPanelScalingImage yet or your eyes will burn!
+	It still needs severe cleanup
+
+2006-08-22  Jorn Baayen  <jorn@openedhand.com>
+
 	* configure.ac:
 	* applets/Makefile.am:
 	* applets/showdesktop/Makefile.am:

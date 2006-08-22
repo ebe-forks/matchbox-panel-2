@@ -7,9 +7,9 @@
  */
 
 #include <gtk/gtktogglebutton.h>
-#include <gtk/gtkimage.h>
 #include <gdk/gdkx.h>
 #include <matchbox-panel/mb-panel.h>
+#include <matchbox-panel/mb-panel-scaling-image.h>
 
 typedef struct {
         GtkToggleButton *button;
@@ -132,6 +132,7 @@ mb_panel_applet_create (const char *id,
 {
         ShowDesktopApplet *applet;
         GtkWidget *button, *image;
+        int shortest_side;
 
         /* Create applet data structure */
         applet = g_slice_new (ShowDesktopApplet);
@@ -147,7 +148,12 @@ mb_panel_applet_create (const char *id,
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
 
-        image = gtk_image_new ();
+        shortest_side = MIN (panel_width, panel_height);
+        gtk_widget_set_size_request (button,
+                                     shortest_side,
+                                     shortest_side);
+
+        image = mb_panel_scaling_image_new ("gnome-fs-desktop");
         gtk_container_add (GTK_CONTAINER (button), image);
 
         g_signal_connect (button,

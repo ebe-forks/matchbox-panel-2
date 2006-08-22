@@ -60,7 +60,7 @@ initial_timeout (ClockApplet *applet)
 /* GtkStyle set */
 static void
 style_set_cb (GtkWidget *widget,
-              GtkStyle  *style,
+              GtkStyle  *old_style,
               gpointer   user_data)
 {
         GtkRequisition requisition;

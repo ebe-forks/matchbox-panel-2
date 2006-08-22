@@ -6,11 +6,11 @@ AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
 
 matchbox_panelincdir = $(includedir)/matchbox-panel
 
-matchbox_panelinc_HEADERS = mb-panel.h
+matchbox_panelinc_HEADERS = mb-panel.h mb-panel-scaling-image.h
 
 bin_PROGRAMS = matchbox-panel
 
-matchbox_panel_SOURCES = mb-panel.c mb-panel.h
+matchbox_panel_SOURCES = mb-panel.c mb-panel-scaling-image.c
 
 matchbox_panel_LDADD = $(MATCHBOX_PANEL_LIBS)
 
