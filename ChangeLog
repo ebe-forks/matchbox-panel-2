@@ -1,5 +1,15 @@
 2006-08-22  Jorn Baayen  <jorn@openedhand.com>
 
+	* matchbox-panel/mb-panel-scaling-image.c: (find_icon),
+	(reload_icon), (icon_theme_changed_cb),
+	(mb_panel_scaling_image_screen_changed),
+	(mb_panel_scaling_image_class_init), (mb_panel_scaling_image_new),
+	(mb_panel_scaling_image_set_icon):
+
+	Cleanup.
+
+2006-08-22  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/clock/clock.c:
 	* applets/launcher/launcher.c: (mb_panel_applet_create):
 	* applets/showdesktop/showdesktop.c: (mb_panel_applet_create):

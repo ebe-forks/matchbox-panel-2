@@ -12,10 +12,10 @@
 #include "mb-panel-scaling-image.h"
 
 struct _MBPanelScalingImagePrivate {
+        char *icon;
+
         GtkIconTheme *icon_theme;
         guint icon_theme_changed_id;
-
-        char *icon;
 };
 
 enum {
@@ -133,27 +133,29 @@ strip_extension (const char *file)
 /* This follows the same logic as gnome-panel. This should hopefully
  * ensure correct behaviour. */
 static char *
-find_icon (MBPanelScalingImage *image)
+find_icon (GtkIconTheme *icon_theme,
+           const char   *icon,
+           int           size)
 {
         GtkIconInfo *info;
-        char *icon, *stripped;
+        char *new_icon, *stripped;
 
-        if (g_path_is_absolute (image->priv->icon)) {
-                if (g_file_test (image->priv->icon, G_FILE_TEST_EXISTS))
-                        return g_strdup (image->priv->icon);
+        if (g_path_is_absolute (icon)) {
+                if (g_file_test (icon, G_FILE_TEST_EXISTS))
+                        return g_strdup (icon);
                 else
-                        icon = g_path_get_basename (image->priv->icon);
+                        new_icon = g_path_get_basename (icon);
         } else
-                icon = image->priv->icon;
+                new_icon = (char *) icon;
 
-        stripped = strip_extension (icon);
+        stripped = strip_extension (new_icon);
 
-        if (icon != image->priv->icon)
-                g_free (icon);
+        if (new_icon != icon)
+                g_free (new_icon);
 
-        info = gtk_icon_theme_lookup_icon (image->priv->icon_theme, 
+        info = gtk_icon_theme_lookup_icon (icon_theme, 
                                            stripped,
-                                           GTK_WIDGET (image)->allocation.width,
+                                           size,
                                            0);
         
         g_free (stripped);
@@ -170,15 +172,21 @@ find_icon (MBPanelScalingImage *image)
                 return NULL;
 }
 
+/* Reload the specified icon */
 static void
 reload_icon (MBPanelScalingImage *image)
 {
-        /* Reload icon */
+        int width, height;
         char *file;
 	GdkPixbuf *pixbuf;
         GError *error;
 
-        file = find_icon (image);
+        width  = GTK_WIDGET (image)->allocation.width;
+        height = GTK_WIDGET (image)->allocation.height;
+
+        file = find_icon (image->priv->icon_theme,
+                          image->priv->icon,
+                          MIN (width, height));
 	if (!file) {
                 g_warning ("Icon \"%s\" not found", image->priv->icon);
 
@@ -187,8 +195,8 @@ reload_icon (MBPanelScalingImage *image)
 
         error = NULL;
         pixbuf = gdk_pixbuf_new_from_file_at_scale (file,
-                                           GTK_WIDGET (image)->allocation.width,
-                                           GTK_WIDGET (image)->allocation.width,
+                                                    width,
+                                                    height,
                                                     TRUE,
                                                     &error);
 
@@ -204,6 +212,7 @@ reload_icon (MBPanelScalingImage *image)
                 g_error_free (error);
         }
 }
+
 /* Icon theme changed */
 static void
 icon_theme_changed_cb (GtkIconTheme   *icon_theme,
@@ -212,7 +221,6 @@ icon_theme_changed_cb (GtkIconTheme   *icon_theme,
         if (GTK_WIDGET_REALIZED (image))
                 reload_icon (image);
 }
-
 
 static void
 mb_panel_scaling_image_realize (GtkWidget *widget)
@@ -244,8 +252,9 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
                 return;
 
         if (image->priv->icon_theme_changed_id) {
-                g_signal_handler_disconnect (image->priv->icon_theme,
-                                             image->priv->icon_theme_changed_id);
+                g_signal_handler_disconnect
+                        (image->priv->icon_theme,
+                         image->priv->icon_theme_changed_id);
         }
 
         image->priv->icon_theme = new_icon_theme;
@@ -256,6 +265,7 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
                                   G_CALLBACK (icon_theme_changed_cb),
                                   image);
 
+        /* Reload icon if we are realized */
         if (GTK_WIDGET_REALIZED (widget))
                 reload_icon (MB_PANEL_SCALING_IMAGE (widget));
         
@@ -296,6 +306,13 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
                           G_PARAM_STATIC_BLURB));
 }
 
+/**
+ * mb_panel_scaling_image_new
+ * @icon: The icon to display. This can be an absolute path, or a name
+ * of an icon theme icon.
+ *
+ * Return value: A new #MBPanelScalingImage object displaying @icon.
+ **/
 GtkWidget *
 mb_panel_scaling_image_new (const char *icon)
 {
@@ -304,6 +321,14 @@ mb_panel_scaling_image_new (const char *icon)
                              NULL);
 }
 
+/**
+ * mb_panel_scaling_image_set_icon
+ * @image: A #MBPanelScalingImage
+ * @icon: The icon to display. This can be an absolute path, or a name
+ * of an icon theme icon.
+ *
+ * Displays @icon in @image.
+ **/
 void
 mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
                                  const char          *icon)
@@ -318,6 +343,12 @@ mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
                 reload_icon (image);
 }
 
+/**
+ * mb_panel_scaling_image_get_icon
+ * @image: A #MBPanelScalingImage
+ *
+ * Return value: The displayed icon. This string should not be freed.
+ **/
 const char *
 mb_panel_scaling_image_get_icon (MBPanelScalingImage *image)
 {
