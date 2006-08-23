@@ -7,6 +7,7 @@
  */
 
 #include <apm.h>
+#include <string.h>
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
@@ -33,6 +34,7 @@ timeout (BatteryApplet *applet)
         apm_info info;
         const char *icon;
 
+        memset (&info, 0, sizeof (apm_info));
         apm_read (&info);
 
         if (info.battery_status == BATTERY_STATUS_ABSENT)

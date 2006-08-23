@@ -1,5 +1,11 @@
 2006-08-23  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/battery/battery.c: (timeout):
+
+	memset0 apm_info. Thanks valgrind.
+
+2006-08-23  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/Makefile.am:
 	* applets/windowselector/Makefile.am:
 	* applets/windowselector/windowselector.c:
