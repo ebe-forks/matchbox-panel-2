@@ -1,3 +1,15 @@
+2006-08-23  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/battery/Makefile.am:
+	* applets/battery/data/Makefile.am:
+	* applets/clock/Makefile.am:
+	* applets/launcher/Makefile.am:
+	* applets/showdesktop/Makefile.am:
+	* applets/systray/Makefile.am:
+	* matchbox-panel/Makefile.am:
+
+	Makefile cleanups.
+
 2006-08-22  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/battery/battery.c: (timeout), (mb_panel_applet_create):

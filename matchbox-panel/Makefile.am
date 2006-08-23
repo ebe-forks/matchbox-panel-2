@@ -1,10 +1,10 @@
 AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
             -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-	    -DDEFAULT_APPLET_PATH=\"$(libdir)/matchbox-panel\"
+	    -DDEFAULT_APPLET_PATH=\"$(pkglibdir)\"
 AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
 	    -I$(top_srcdir) -I$(top_builddir) -Werror
 
-matchbox_panelincdir = $(includedir)/matchbox-panel
+matchbox_panelincdir = $(pkgincludedir)
 
 matchbox_panelinc_HEADERS = mb-panel.h mb-panel-scaling-image.h
 
