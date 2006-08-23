@@ -1,5 +1,12 @@
 2006-08-23  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/showdesktop/showdesktop.c: (show_desktop_applet_free),
+	(filter_func), (screen_changed_cb):
+
+	Monitor root window correctly.
+
+2006-08-23  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/battery/Makefile.am:
 	* applets/battery/data/Makefile.am:
 	* applets/clock/Makefile.am:

@@ -8,6 +8,7 @@
 
 #include <gtk/gtktogglebutton.h>
 #include <gdk/gdkx.h>
+#include <X11/Xatom.h>
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
@@ -38,7 +39,7 @@ show_desktop_applet_free (ShowDesktopApplet *applet)
         g_slice_free (ShowDesktopApplet, applet);
 }
 
-/* _NET_SHOWING_DESKTOP message received */
+/* Something happened on the root window */
 static GdkFilterReturn
 filter_func (GdkXEvent         *xevent,
              GdkEvent          *event,
@@ -48,14 +49,39 @@ filter_func (GdkXEvent         *xevent,
 
         xev = (XEvent *) xevent;
 
-        if (xev->type == ClientMessage) {
-                if (xev->xclient.message_type == applet->atom) {
-                        applet->block_toggle = TRUE;
+        if (xev->type == PropertyNotify) {
+                if (xev->xproperty.atom == applet->atom) {
+                        Atom type;
+                        int format, result;
+                        gulong nitems, bytes_after, *num;
 
-                        gtk_toggle_button_set_active (applet->button,
-                                                      xev->xclient.data.l[0]); 
+                        type = 0;
 
-                        applet->block_toggle = FALSE;
+                        gdk_error_trap_push ();
+                        result = XGetWindowProperty (xev->xproperty.display,
+                                                     xev->xproperty.window,
+                                                     xev->xproperty.atom,
+                                                     0,
+                                                     G_MAXLONG,
+                                                     False,
+                                                     XA_CARDINAL,
+                                                     &type,
+                                                     &format,
+                                                     &nitems,
+                                                     &bytes_after,
+                                                     (gpointer) &num);
+                        if (!gdk_error_trap_pop () && result == Success) {
+                                if (type == XA_CARDINAL) {
+                                        applet->block_toggle = TRUE;
+
+                                        gtk_toggle_button_set_active
+                                                (applet->button, *num);
+
+                                        applet->block_toggle = FALSE;
+                                }
+
+                                XFree (num);
+                        }
                 }
         }
 
@@ -70,6 +96,7 @@ screen_changed_cb (GtkWidget         *button,
 {
         GdkScreen *screen;
         GdkDisplay *display;
+        GdkEventMask events;
 
         if (applet->root_window) {
                 gdk_window_remove_filter (applet->root_window,
@@ -85,6 +112,12 @@ screen_changed_cb (GtkWidget         *button,
         applet->root_window = gdk_screen_get_root_window (screen);
 
         /* Watch _NET_SHOWING_DESKTOP */
+        events = gdk_window_get_events (applet->root_window);
+        if ((events & GDK_PROPERTY_CHANGE_MASK) == 0) {
+                gdk_window_set_events (applet->root_window,
+                                       events & GDK_PROPERTY_CHANGE_MASK);
+        }
+
         gdk_window_add_filter (applet->root_window,
                                (GdkFilterFunc) filter_func,
                                applet);
