@@ -1,5 +1,20 @@
 2006-08-23  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/Makefile.am:
+	* applets/windowselector/Makefile.am:
+	* applets/windowselector/windowselector.c:
+	* configure.ac:
+
+	Added window selector applet. Still needs work to make icons
+	show up.
+
+	* applets/showdesktop/showdesktop.c: (show_desktop_applet_free),
+	(sync), (filter_func), (screen_changed_cb):
+
+	Perform initial sync.
+
+2006-08-23  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/showdesktop/showdesktop.c: (show_desktop_applet_free),
 	(filter_func), (screen_changed_cb):
 

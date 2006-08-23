@@ -39,6 +39,46 @@ show_desktop_applet_free (ShowDesktopApplet *applet)
         g_slice_free (ShowDesktopApplet, applet);
 }
 
+/* Sync @applet with the _NET_SHOWING_DESKTOP root window property */
+static void
+sync (ShowDesktopApplet *applet)
+{
+        GdkDisplay *display;
+        Atom type;
+        int format, result;
+        gulong nitems, bytes_after, *num;
+
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
+
+        type = 0;
+
+        gdk_error_trap_push ();
+        result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
+                                     GDK_WINDOW_XWINDOW
+                                            (applet->root_window),
+                                     applet->atom,
+                                     0,
+                                     G_MAXLONG,
+                                     False,
+                                     XA_CARDINAL,
+                                     &type,
+                                     &format,
+                                     &nitems,
+                                     &bytes_after,
+                                     (gpointer) &num);
+        if (!gdk_error_trap_pop () && result == Success) {
+                if (type == XA_CARDINAL) {
+                        applet->block_toggle = TRUE;
+
+                        gtk_toggle_button_set_active (applet->button, *num);
+
+                        applet->block_toggle = FALSE;
+                }
+
+                XFree (num);
+        }
+}
+
 /* Something happened on the root window */
 static GdkFilterReturn
 filter_func (GdkXEvent         *xevent,
@@ -51,37 +91,8 @@ filter_func (GdkXEvent         *xevent,
 
         if (xev->type == PropertyNotify) {
                 if (xev->xproperty.atom == applet->atom) {
-                        Atom type;
-                        int format, result;
-                        gulong nitems, bytes_after, *num;
-
-                        type = 0;
-
-                        gdk_error_trap_push ();
-                        result = XGetWindowProperty (xev->xproperty.display,
-                                                     xev->xproperty.window,
-                                                     xev->xproperty.atom,
-                                                     0,
-                                                     G_MAXLONG,
-                                                     False,
-                                                     XA_CARDINAL,
-                                                     &type,
-                                                     &format,
-                                                     &nitems,
-                                                     &bytes_after,
-                                                     (gpointer) &num);
-                        if (!gdk_error_trap_pop () && result == Success) {
-                                if (type == XA_CARDINAL) {
-                                        applet->block_toggle = TRUE;
-
-                                        gtk_toggle_button_set_active
-                                                (applet->button, *num);
-
-                                        applet->block_toggle = FALSE;
-                                }
-
-                                XFree (num);
-                        }
+                        /* _NET_SHOWING_DESKTOP changed */
+                        sync (applet);
                 }
         }
 
@@ -121,6 +132,9 @@ screen_changed_cb (GtkWidget         *button,
         gdk_window_add_filter (applet->root_window,
                                (GdkFilterFunc) filter_func,
                                applet);
+
+        /* Sync */
+        sync (applet);
 }
 
 /* Button toggled */

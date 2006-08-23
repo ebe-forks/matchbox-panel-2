@@ -67,6 +67,7 @@ applets/clock/Makefile
 applets/launcher/Makefile
 applets/systray/Makefile
 applets/showdesktop/Makefile
+applets/windowselector/Makefile
 applets/battery/Makefile
 applets/battery/data/Makefile
 po/Makefile.in
