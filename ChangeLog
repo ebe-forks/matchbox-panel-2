@@ -1,5 +1,11 @@
 2006-08-24  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/windowselector/windowselector.c: (sync_icon):
+
+	Use "panel-window-menu" icon when there is no active app window.
+
+2006-08-24  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/windowselector/windowselector.c: (sync_icon),
 	(rebuild_menu):
 

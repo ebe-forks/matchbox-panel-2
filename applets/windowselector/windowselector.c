@@ -351,11 +351,13 @@ sync_icon (WindowSelectorApplet *applet)
         gulong nitems, bytes_after;
         Window *windows;
         GdkPixbuf *icon;
+        const char *icon_name;
 
         /* Get _MB_CURRENT_APP_WINDOW prop */
         display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
 
         icon = NULL;
+        icon_name = "panel-window-menu";
         type = None;
 
         gdk_error_trap_push ();
@@ -372,8 +374,12 @@ sync_icon (WindowSelectorApplet *applet)
                                      &bytes_after,
                                      (gpointer) &windows);
         if (!gdk_error_trap_pop () && result == Success) {
-                if (type == XA_WINDOW && nitems > 0)
+                if (type == XA_WINDOW && nitems > 0 && windows[0]) {
                         icon = window_get_icon (applet, windows[0]);
+
+                        if (!icon)
+                                icon_name = DEFAULT_WINDOW_ICON_NAME;
+                }
 
                 XFree (windows);
         }
@@ -385,7 +391,7 @@ sync_icon (WindowSelectorApplet *applet)
                 g_object_unref (icon);       
         } else {
                 gtk_image_set_from_icon_name (applet->image,
-                                              DEFAULT_WINDOW_ICON_NAME,
+                                              icon_name,
                                               GTK_ICON_SIZE_MENU);
         }
 }
