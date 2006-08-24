@@ -1,5 +1,12 @@
 2006-08-24  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/windowselector/windowselector.c: (sync_icon),
+	(rebuild_menu):
+
+	Use default icon if no icon is specified.
+
+2006-08-24  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/windowselector/windowselector.c: (window_get_icon),
 	(rebuild_menu), (button_press_event_cb), (filter_func),
 	(screen_changed_cb):

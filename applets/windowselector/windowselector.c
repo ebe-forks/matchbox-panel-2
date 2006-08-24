@@ -19,6 +19,8 @@
 #include <glib/gi18n.h>
 #include <matchbox-panel/mb-panel.h>
 
+#define DEFAULT_WINDOW_ICON_NAME "gnome-fs-executable"
+
 enum {
         _MB_APP_WINDOW_LIST_STACKING,
         _MB_CURRENT_APP_WINDOW,
@@ -377,9 +379,15 @@ sync_icon (WindowSelectorApplet *applet)
         }
 
         /* Get icon & set to image */
-        gtk_image_set_from_pixbuf (applet->image, icon);
-        if (icon)
+        if (icon) {
+                gtk_image_set_from_pixbuf (applet->image, icon);
+                
                 g_object_unref (icon);       
+        } else {
+                gtk_image_set_from_icon_name (applet->image,
+                                              DEFAULT_WINDOW_ICON_NAME,
+                                              GTK_ICON_SIZE_MENU);
+        }
 }
 
 /* Window menu item activated. Activate the associated window. */
@@ -467,23 +475,29 @@ rebuild_menu (WindowSelectorApplet *applet)
         for (i = 0; i < nitems; i++) {
                 char *name;
                 GdkPixbuf *icon;
-                GtkWidget *menu_item;
+                GtkWidget *menu_item, *image;
 
                 name = window_get_name (applet, windows[i]);
                 menu_item = gtk_image_menu_item_new_with_label (name);
                 g_free (name);
 
+                image = gtk_image_new ();
+
                 icon = window_get_icon (applet, windows[i]);
                 if (icon) {
-                        GtkWidget *image;
-                        
-                        image = gtk_image_new_from_pixbuf (icon);
-                        g_object_unref (icon);
+                        gtk_image_set_from_pixbuf (GTK_IMAGE (image),
+                                                   icon);
 
-                        gtk_image_menu_item_set_image
-                                (GTK_IMAGE_MENU_ITEM (menu_item), image);
-                        gtk_widget_show (image);
+                        g_object_unref (icon);
+                } else {
+                        gtk_image_set_from_icon_name (GTK_IMAGE (image),
+                                                      DEFAULT_WINDOW_ICON_NAME,
+                                                      GTK_ICON_SIZE_MENU);
                 }
+
+                gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menu_item),
+                                               image);
+                gtk_widget_show (image);
 
                 g_object_set_data (G_OBJECT (menu_item),
                                    "window",
