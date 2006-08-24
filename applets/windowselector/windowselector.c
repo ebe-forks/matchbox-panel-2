@@ -12,22 +12,29 @@
 #include <gtk/gtkimagemenuitem.h>
 #include <gtk/gtkmenu.h>
 #include <gtk/gtkimage.h>
+#include <gtk/gtkiconfactory.h>
 #include <gtk/gtkmain.h>
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <glib/gi18n.h>
 #include <matchbox-panel/mb-panel.h>
 
+enum {
+        _MB_APP_WINDOW_LIST_STACKING,
+        UTF8_STRING,
+        _NET_WM_VISIBLE_NAME,
+        _NET_WM_NAME,
+        _NET_ACTIVE_WINDOW,
+        _NET_WM_ICON,
+        N_ATOMS
+};
+
 typedef struct {
         GtkMenuItem *menu_item;
         GtkImage *image;
         GtkMenu *menu;
 
-        Atom stacking_atom;
-        Atom utf8_string_atom;
-        Atom visible_name_atom;
-        Atom name_atom;
-        Atom active_window_atom;
+        Atom atoms[N_ATOMS];
         
         GdkWindow *root_window;
 } WindowSelectorApplet;
@@ -74,7 +81,7 @@ get_utf8_property (WindowSelectorApplet *applet,
                                      0,
                                      G_MAXLONG,
                                      False,
-                                     applet->utf8_string_atom,
+                                     applet->atoms[UTF8_STRING],
                                      &type,
                                      &format,
                                      &nitems,
@@ -83,7 +90,7 @@ get_utf8_property (WindowSelectorApplet *applet,
         if (gdk_error_trap_pop () || result != Success)
                 return NULL;
   
-        if (type != applet->utf8_string_atom || format != 8 || nitems == 0) {
+        if (type != applet->atoms[UTF8_STRING] || format != 8 || nitems == 0) {
                 if (val)
                         XFree (val);
 
@@ -149,22 +156,186 @@ get_text_property (WindowSelectorApplet *applet,
         return ret;
 }
 
-/* Retrieves the title for @window */
+/* Retrieves the name for @window */
 static char *
-window_get_title (WindowSelectorApplet *applet,
-                  Window                window)
+window_get_name (WindowSelectorApplet *applet,
+                 Window                window)
 {
         char *name;
   
-        name = get_utf8_property (applet, window, applet->visible_name_atom);
-        if (name == NULL)
-                name = get_utf8_property (applet, window, applet->name_atom);
-        if (name == NULL)
-                name = get_text_property (applet, window, XA_WM_NAME);
-        if (name == NULL)
+        name = get_utf8_property (applet,
+                                  window,
+                                  applet->atoms[_NET_WM_VISIBLE_NAME]);
+        if (name == NULL) {
+                name = get_utf8_property (applet,
+                                          window,
+                                          applet->atoms[_NET_WM_NAME]);
+        } if (name == NULL) {
+                name = get_text_property (applet,
+                                          window,
+                                          XA_WM_NAME);
+        } if (name == NULL) {
                 name = g_strdup (_("(untitled)"));
+        }
 
         return name;
+}
+
+/* Retrieves the icon for @window */
+static GdkPixbuf *
+window_get_icon (WindowSelectorApplet *applet,
+                 Window                window)
+{
+        GdkPixbuf *pixbuf;
+        GdkDisplay *display;
+        Atom type;
+        int format, result;
+        int ideal_width, ideal_height, ideal_size;
+        int best_width, best_height, best_size;
+        int i, npixels, ip;
+        gulong nitems, bytes_after, *data, *datap, *best_data;
+        GtkSettings *settings;
+        guchar *pixdata;
+
+        /* First, we read the contents of the _NET_WM_ICON property */
+        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+
+        type = 0;
+
+        gdk_error_trap_push ();
+        result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
+                                     window,
+                                     applet->atoms[_NET_WM_ICON],
+                                     0,
+                                     G_MAXLONG,
+                                     False,
+                                     XA_CARDINAL,
+                                     &type,
+                                     &format,
+                                     &nitems,
+                                     &bytes_after,
+                                     (gpointer) &data);
+        if (gdk_error_trap_pop () || result != Success)
+                return NULL;
+
+        if (type != XA_CARDINAL || nitems < 3) {
+                XFree (data);
+
+                return NULL;
+        }
+
+        /* Got it. Now what size icon are we looking for? */
+        settings = gtk_widget_get_settings (GTK_WIDGET (applet->menu_item));
+        gtk_icon_size_lookup_for_settings (settings,
+                                           GTK_ICON_SIZE_MENU,
+                                           &ideal_width,
+                                           &ideal_height);
+
+        ideal_size = (ideal_width + ideal_height) / 2;
+
+        /* Try to find the closest match */
+        best_data = NULL;
+        best_width = best_height = best_size = 0;
+
+        datap = data;
+        while (nitems > 0) {
+                int cur_width, cur_height, cur_size;
+                gboolean replace;
+
+                if (nitems < 3)
+                        break;
+
+                cur_width = datap[0];
+                cur_height = datap[1];
+                cur_size = (cur_width + cur_height) / 2;
+
+                if (nitems < (2 + cur_width * cur_height))
+                        break;
+
+                if (!best_data) {
+                        replace = TRUE;
+                } else {
+                        /* Always prefer bigger to smaller */
+                        if (best_size < ideal_size &&
+                            cur_size > best_size)
+                                replace = TRUE;
+                        /* Prefer smaller bigger */
+                        else if (best_size > ideal_size &&
+                                 cur_size >= ideal_size && 
+                                 cur_size < best_size)
+                                replace = TRUE;
+                        else
+                                replace = FALSE;
+                }
+
+                if (replace) {
+                        best_data = datap + 2;
+                        best_width = cur_width;
+                        best_height = cur_height;
+                        best_size = cur_size;
+                }
+
+                datap += (2 + cur_width * cur_height);
+                nitems -= (2 + cur_width * cur_height);
+        }
+
+        if (!best_data) {
+                XFree (data);
+
+                return NULL;
+        }
+
+        /* Got it. Load it into a pixbuf. */
+        npixels = best_width * best_height;
+        pixdata = g_new (guchar, npixels * 4);
+        
+        for (i = 0, ip = 0; i < npixels; i++) {
+                /* red */
+                pixdata[ip] = (best_data[i] >> 16) & 0xff;
+                ip++;
+
+                /* green */
+                pixdata[ip] = (best_data[i] >> 8) & 0xff;
+                ip++;
+
+                /* blue */
+                pixdata[ip] = best_data[i] & 0xff;
+                ip++;
+
+                /* alpha */
+                pixdata[ip] = best_data[i] >> 24;
+                ip++;
+        }
+
+        pixbuf = gdk_pixbuf_new_from_data (pixdata,
+                                           GDK_COLORSPACE_RGB,
+                                           TRUE,
+                                           8,
+                                           best_width,
+                                           best_height,
+                                           best_width * 4,
+                                           (GdkPixbufDestroyNotify) g_free,
+                                           NULL);
+
+        /* Scale if necessary */
+        if (best_width != ideal_width &&
+            best_height != ideal_height) {
+                GdkPixbuf *scaled;
+
+                scaled = gdk_pixbuf_scale_simple (pixbuf,
+                                                  ideal_width,
+                                                  ideal_height,
+                                                  GDK_INTERP_BILINEAR);
+                g_object_unref (pixbuf);
+
+                pixbuf = scaled;
+        }
+
+        /* Cleanup */
+        XFree (data);
+  
+        /* Return */
+        return pixbuf;
 }
 
 /* Window menu item activated. Activate the associated window. */
@@ -188,7 +359,7 @@ window_menu_item_activate_cb (GtkWidget            *widget,
         xev.xclient.send_event = True;
         xev.xclient.display = DisplayOfScreen (screen);
         xev.xclient.window = window;
-        xev.xclient.message_type = applet->active_window_atom; 
+        xev.xclient.message_type = applet->atoms[_NET_ACTIVE_WINDOW]; 
         xev.xclient.format = 32;
         xev.xclient.data.l[0] = 2;
         xev.xclient.data.l[1] = gtk_get_current_event_time ();
@@ -229,7 +400,7 @@ rebuild_menu (WindowSelectorApplet *applet)
         gdk_error_trap_push ();
         result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
                                      GDK_WINDOW_XWINDOW (applet->root_window),
-                                     applet->stacking_atom,
+                                     applet->atoms[_MB_APP_WINDOW_LIST_STACKING],
                                      0,
                                      G_MAXLONG,
                                      False,
@@ -250,12 +421,25 @@ rebuild_menu (WindowSelectorApplet *applet)
 
         /* Load into menu */
         for (i = 0; i < nitems; i++) {
-                char *title;
+                char *name;
+                GdkPixbuf *icon;
                 GtkWidget *menu_item;
 
-                title = window_get_title (applet, windows[i]);
-                menu_item = gtk_image_menu_item_new_with_label (title);
-                g_free (title);
+                name = window_get_name (applet, windows[i]);
+                menu_item = gtk_image_menu_item_new_with_label (name);
+                g_free (name);
+
+                icon = window_get_icon (applet, windows[i]);
+                if (icon) {
+                        GtkWidget *image;
+
+                        image = gtk_image_new_from_pixbuf (icon);
+                        g_object_unref (icon);
+
+                        gtk_image_menu_item_set_image
+                                (GTK_IMAGE_MENU_ITEM (menu_item), image);
+                        gtk_widget_show (image);
+                }
 
                 g_object_set_data (G_OBJECT (menu_item),
                                    "window",
@@ -336,12 +520,14 @@ filter_func (GdkXEvent            *xevent,
         xev = (XEvent *) xevent;
 
         if (xev->type == PropertyNotify) {
-                if (xev->xproperty.atom == applet->stacking_atom) {
+                if (xev->xproperty.atom ==
+                    applet->atoms[_MB_APP_WINDOW_LIST_STACKING]) {
                         /* _MB_APP_WINDOW_LIST_STACKING changed.
                          * Rebuild menu if around. */
                         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                                 rebuild_menu (applet);
-                } else if (xev->xproperty.atom == applet->active_window_atom) {
+                } else if (xev->xproperty.atom ==
+                           applet->atoms [_NET_ACTIVE_WINDOW]) {
                         /* _NET_ACTIVE_WINDOW changed.
                          * Update "active task" icon.
                          * TODO */
@@ -371,19 +557,22 @@ screen_changed_cb (GtkWidget         *button,
         display = gdk_screen_get_display (screen);
 
         /* Get atoms */
-        applet->stacking_atom =
+        applet->atoms[_MB_APP_WINDOW_LIST_STACKING] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "_MB_APP_WINDOW_LIST_STACKING");
-        applet->utf8_string_atom =
+        applet->atoms[UTF8_STRING] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "UTF8_STRING");
-        applet->name_atom = 
+        applet->atoms[_NET_WM_NAME] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "_NET_WM_NAME");
-        applet->visible_name_atom = 
+        applet->atoms[_NET_WM_VISIBLE_NAME] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "_NET_WM_VISIBLE_NAME");
-        applet->active_window_atom = 
+        applet->atoms[_NET_WM_ICON] =
+                gdk_x11_get_xatom_by_name_for_display
+                        (display, "_NET_WM_ICON");
+        applet->atoms[_NET_ACTIVE_WINDOW] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "_NET_ACTIVE_WINDOW");
         

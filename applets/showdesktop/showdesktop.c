@@ -67,7 +67,7 @@ sync (ShowDesktopApplet *applet)
                                      &bytes_after,
                                      (gpointer) &num);
         if (!gdk_error_trap_pop () && result == Success) {
-                if (type == XA_CARDINAL) {
+                if (type == XA_CARDINAL && nitems > 0) {
                         applet->block_toggle = TRUE;
 
                         gtk_toggle_button_set_active (applet->button, *num);
