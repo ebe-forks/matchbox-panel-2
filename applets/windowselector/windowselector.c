@@ -21,6 +21,7 @@
 
 enum {
         _MB_APP_WINDOW_LIST_STACKING,
+        _MB_CURRENT_APP_WINDOW,
         UTF8_STRING,
         _NET_WM_VISIBLE_NAME,
         _NET_WM_NAME,
@@ -338,6 +339,49 @@ window_get_icon (WindowSelectorApplet *applet,
         return pixbuf;
 }
 
+/* Sync icon with _MB_CURRENT_APP_WINDOW */
+static void
+sync_icon (WindowSelectorApplet *applet)
+{
+        GdkDisplay *display;
+        Atom type;
+        int format, result;
+        gulong nitems, bytes_after;
+        Window *windows;
+        GdkPixbuf *icon;
+
+        /* Get _MB_CURRENT_APP_WINDOW prop */
+        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+
+        icon = NULL;
+        type = None;
+
+        gdk_error_trap_push ();
+        result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
+                                     GDK_WINDOW_XWINDOW (applet->root_window),
+                                     applet->atoms[_MB_CURRENT_APP_WINDOW],
+                                     0,
+                                     G_MAXLONG,
+                                     False,
+                                     XA_WINDOW,
+                                     &type,
+                                     &format,
+                                     &nitems,
+                                     &bytes_after,
+                                     (gpointer) &windows);
+        if (!gdk_error_trap_pop () && result == Success) {
+                if (type == XA_WINDOW && nitems > 0)
+                        icon = window_get_icon (applet, windows[0]);
+
+                XFree (windows);
+        }
+
+        /* Get icon & set to image */
+        gtk_image_set_from_pixbuf (applet->image, icon);
+        if (icon)
+                g_object_unref (icon);       
+}
+
 /* Window menu item activated. Activate the associated window. */
 static void
 window_menu_item_activate_cb (GtkWidget            *widget,
@@ -432,7 +476,7 @@ rebuild_menu (WindowSelectorApplet *applet)
                 icon = window_get_icon (applet, windows[i]);
                 if (icon) {
                         GtkWidget *image;
-
+                        
                         image = gtk_image_new_from_pixbuf (icon);
                         g_object_unref (icon);
 
@@ -527,10 +571,10 @@ filter_func (GdkXEvent            *xevent,
                         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                                 rebuild_menu (applet);
                 } else if (xev->xproperty.atom ==
-                           applet->atoms [_NET_ACTIVE_WINDOW]) {
-                        /* _NET_ACTIVE_WINDOW changed.
-                         * Update "active task" icon.
-                         * TODO */
+                           applet->atoms [_MB_CURRENT_APP_WINDOW]) {
+                        /* _MB_CURRENT_APP_WINDOW changed.
+                         * Update active task icon. */
+                        sync_icon (applet);
                 }
         }
 
@@ -560,6 +604,9 @@ screen_changed_cb (GtkWidget         *button,
         applet->atoms[_MB_APP_WINDOW_LIST_STACKING] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "_MB_APP_WINDOW_LIST_STACKING");
+        applet->atoms[_MB_CURRENT_APP_WINDOW] =
+                gdk_x11_get_xatom_by_name_for_display
+                        (display, "_MB_CURRENT_APP_WINDOW");
         applet->atoms[UTF8_STRING] =
                 gdk_x11_get_xatom_by_name_for_display
                         (display, "UTF8_STRING");
@@ -593,6 +640,9 @@ screen_changed_cb (GtkWidget         *button,
         /* Rebuild menu if around */
         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                 rebuild_menu (applet);
+
+        /* Update current task icon */
+        sync_icon (applet);
 }
 
 G_MODULE_EXPORT GtkWidget *

@@ -1,5 +1,13 @@
 2006-08-24  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/windowselector/windowselector.c: (window_get_icon),
+	(rebuild_menu), (button_press_event_cb), (filter_func),
+	(screen_changed_cb):
+
+	Show active task icon.
+
+2006-08-24  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/showdesktop/showdesktop.c: (sync):
 
 	Add nitems check.
