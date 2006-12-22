@@ -1,3 +1,8 @@
+2006-12-22  Matthew Allum  <mallum@openedhand.com>
+
+	* matchbox-panel/mb-panel.c: 
+	Add support for being parented in titlebar.
+
 2006-08-24  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/windowselector/windowselector.c: (sync_icon):

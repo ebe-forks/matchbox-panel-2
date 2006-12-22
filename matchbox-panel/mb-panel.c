@@ -12,6 +12,13 @@
 #include <gtk/gtkhbox.h>
 #include <gtk/gtkvbox.h>
 
+#include <gdk/gdkx.h>
+
+#include <X11/X.h>
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+
+
 #define DEFAULT_HEIGHT 32 /* Default panel height */
 
 static GList *open_modules = NULL; /* List of open modules */
@@ -125,6 +132,7 @@ main (int argc, char **argv)
         GtkWidget *window, *box;
         int panel_width, panel_height;
         GtkOrientation orientation;
+	gboolean want_titlebar = FALSE;
 
         GOptionEntry option_entries[] = {
                 { "geometry", 0, 0, G_OPTION_ARG_STRING, &geometry,
@@ -133,6 +141,8 @@ main (int argc, char **argv)
                   "Applets to pack at the start", "APPLET[:APPLET_ID] ..." },
                 { "end-applets", 0, 0, G_OPTION_ARG_STRING, &end_applets,
                   "Applets to pack at the end", "APPLET[:APPLET_ID] ..." },
+                { "titlebar", 0, 0, G_OPTION_ARG_NONE, &want_titlebar,
+                  "Display in window titlebar (If Matchbox theme supports)", NULL },
                 { NULL }
         };
 
@@ -180,7 +190,7 @@ main (int argc, char **argv)
         gtk_window_set_type_hint (GTK_WINDOW (window),
                                   GDK_WINDOW_TYPE_HINT_DOCK);
 
-        /* Set default panel height */
+        /* Set default panel height 	*/
         gtk_window_set_default_size (GTK_WINDOW (window),
                                      -1,
                                      DEFAULT_HEIGHT);
@@ -216,6 +226,25 @@ main (int argc, char **argv)
         }
 
         gtk_container_add (GTK_CONTAINER (window), box);
+
+	if (want_titlebar)
+	  {
+	    Atom atoms[3];
+
+	    atoms[0] = XInternAtom (GDK_DISPLAY(), 
+				    "_MB_WM_STATE", False);
+	    atoms[1] = XInternAtom (GDK_DISPLAY(), 
+				    "_MB_WM_STATE_DOCK_TITLEBAR", False);
+	    atoms[2] = XInternAtom (GDK_DISPLAY(),
+				    "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP", False);
+	    gtk_widget_realize (window);
+
+	    XChangeProperty(GDK_DISPLAY(), 
+			    GDK_WINDOW_XID(window->window), 
+			    atoms[0], XA_ATOM, 32,
+			    PropModeReplace, (unsigned char *) &atoms[1], 2);
+	  }
+
         gtk_widget_show (box);
 
         /* Load applets */
