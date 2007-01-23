@@ -54,7 +54,7 @@ load_applet (const char    *name,
         /* Yes: Open it */
         module = g_module_open (path, G_MODULE_BIND_LOCAL);
         if (!module) {
-                g_warning ("Failed to load applet \"%s\".", name);
+                g_warning ("Failed to load applet \"%s\" (%s).", name, g_module_error());
 
                 g_free (path);
 
