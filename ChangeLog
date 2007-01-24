@@ -1,5 +1,13 @@
 2007-01-24  Ross Burton  <ross@openedhand.com>
 
+	* configure.ac:
+	Disable static libraries, they are useless here.
+
+	* applets/*/Makefile.am:
+	Disable library versioning.
+
+2007-01-24  Ross Burton  <ross@openedhand.com>
+
 	* matchbox-panel.pc.in:
 	Add a variable for the applet library directory.
 
