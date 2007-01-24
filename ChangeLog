@@ -1,3 +1,8 @@
+2007-01-24  Ross Burton  <ross@openedhand.com>
+
+	* matchbox-panel.pc.in:
+	Add a variable for the applet library directory.
+
 2007-01-23  Matthew Allum  <mallum@openedhand.com>
 
 	* applets/showdesktop/showdesktop.c:
