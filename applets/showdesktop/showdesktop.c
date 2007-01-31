@@ -195,7 +195,7 @@ mb_panel_applet_create (const char    *id,
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
 
-        image = mb_panel_scaling_image_new ("desktop");
+        image = mb_panel_scaling_image_new ("mb-applet-showdesktop");
         gtk_container_add (GTK_CONTAINER (button), image);
 
         g_signal_connect (button,

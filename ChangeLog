@@ -1,3 +1,10 @@
+2007-01-31  Ross Burton  <ross@openedhand.com>
+
+	* applets/showdesktop/showdesktop.c:
+	* applets/showdesktop/mb-applet-showdesktop.png:
+	* applets/showdesktop/Makefile.am:
+	Ship the icon, as Poky currently doesn't have an icon theme.
+
 2007-01-24  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:
