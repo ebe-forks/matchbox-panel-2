@@ -29,13 +29,20 @@ static gboolean
 timeout (ClockApplet *applet)
 {
         time_t t;
-        char str[6];
+        char str[6], *markup;
 
         /* Update label */
         t = time (NULL);
         strftime (str, 6, "%H:%M", localtime (&t));
         
-        gtk_label_set_text (applet->label, str);
+	/* FIXME: color needs to be named in theme */
+	markup = g_strdup_printf(
+                   "<span weight='bold' foreground='#e3e3e3'>%s</span>", 
+		   str);
+
+        gtk_label_set_markup (applet->label, markup);
+
+	g_free (markup);
 
         /* Keep going */
         return TRUE;
