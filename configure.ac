@@ -15,7 +15,7 @@ AC_PROG_LIBTOOL
 PKG_CHECK_MODULES(MATCHBOX_PANEL,
                   glib-2.0
                   gtk+-2.0 >= 2.6
-                  gmodule-2.0)
+                  gmodule-export-2.0)
 
 # startup-notification
 AC_ARG_ENABLE(startup_notification,
