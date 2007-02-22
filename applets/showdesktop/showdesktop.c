@@ -189,7 +189,7 @@ mb_panel_applet_create (const char    *id,
         button = gtk_toggle_button_new ();
         applet->button = GTK_TOGGLE_BUTTON (button);
 
-	gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
+        gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
 
         GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
 
