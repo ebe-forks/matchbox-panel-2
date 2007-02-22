@@ -7,4 +7,7 @@ applet_LTLIBRARIES = libwindowselector.la
 libwindowselector_la_SOURCES = windowselector.c
 libwindowselector_la_LDFLAGS = -avoid-version
 
+icondir = $(datadir)/pixmaps
+icon_DATA = mb-applet-windowselector.png
+
 MAINTAINERCLEANFILES = Makefile.in

@@ -357,7 +357,7 @@ sync_icon (WindowSelectorApplet *applet)
         display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
 
         icon = NULL;
-        icon_name = "panel-window-menu";
+        icon_name = "mb-applet-windowselector";
         type = None;
 
         gdk_error_trap_push ();
