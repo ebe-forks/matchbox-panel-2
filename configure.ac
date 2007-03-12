@@ -3,7 +3,6 @@ AC_INIT(matchbox-panel, 0.1, http://www.openedhand.com/)
 AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR(matchbox-panel/mb-panel.c)
 AM_CONFIG_HEADER(config.h)
-AM_MAINTAINER_MODE
 
 AM_DISABLE_STATIC
 AC_ISC_POSIX
