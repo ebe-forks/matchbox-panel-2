@@ -56,7 +56,8 @@ GType
 mb_panel_scaling_image_get_type (void) G_GNUC_CONST;
 
 GtkWidget *
-mb_panel_scaling_image_new      (const char          *icon);
+mb_panel_scaling_image_new      (GtkOrientation       orientation,
+                                 const char          *icon);
 
 void
 mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,

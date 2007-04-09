@@ -329,7 +329,7 @@ mb_panel_applet_create (const char    *id,
 
         gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
 
-        image = mb_panel_scaling_image_new (icon);
+        image = mb_panel_scaling_image_new (orientation, icon);
         g_free (icon);
 
         gtk_container_add (GTK_CONTAINER (event_box), image);

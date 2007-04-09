@@ -1,3 +1,23 @@
+2007-04-09  Jorn Baayen  <jorn@openedhand.com>
+
+	* matchbox-panel/mb-panel-scaling-image.c:
+	(mb_panel_scaling_image_init),
+	(mb_panel_scaling_image_set_property),
+	(mb_panel_scaling_image_get_property), (reload_icon),
+	(mb_panel_scaling_image_class_init):
+	* matchbox-panel/mb-panel-scaling-image.h:
+	Add 'orientation' property.
+	(Instead of determining orientation using black magic)
+
+	* applets/battery/battery.c: (mb_panel_applet_create):
+	* applets/launcher/launcher.c: (mb_panel_applet_create):
+	Set orientation on icon.
+
+	* applets/showdesktop/showdesktop.c: (show_desktop_applet_free),
+	(sync), (screen_changed_cb), (button_clicked_cb),
+	(mb_panel_applet_create):
+	Change icon on state change instead of being a toggle button.
+
 2007-03-12  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:

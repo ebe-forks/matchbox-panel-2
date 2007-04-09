@@ -102,7 +102,7 @@ mb_panel_applet_create (const char    *id,
         applet->last_icon = NULL;
 
         /* Create image */
-        image = mb_panel_scaling_image_new (NULL);
+        image = mb_panel_scaling_image_new (orientation, NULL);
         applet->image = MB_PANEL_SCALING_IMAGE (image);
 
         gtk_widget_set_name (image, "MatchboxPanelBatteryMonitor");

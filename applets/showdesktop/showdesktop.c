@@ -6,16 +6,17 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <gtk/gtktogglebutton.h>
+#include <gtk/gtkbutton.h>
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
 typedef struct {
-        GtkToggleButton *button;
+        GtkButton *button;
+        MBPanelScalingImage *image;
 
-        gboolean block_toggle;
+        gboolean active;
 
         Atom atom;
         
@@ -37,6 +38,22 @@ show_desktop_applet_free (ShowDesktopApplet *applet)
         }
 
         g_slice_free (ShowDesktopApplet, applet);
+}
+
+/* Set @applets state to @active */
+static void
+set_active (ShowDesktopApplet *applet, gboolean active)
+{
+        const char *icon;
+
+        applet->active = active;
+
+        if (active)
+                icon = "mb-applet-showdesktop-active";
+        else
+                icon = "mb-applet-showdesktop";
+
+        mb_panel_scaling_image_set_icon (applet->image, icon);
 }
 
 /* Sync @applet with the _NET_SHOWING_DESKTOP root window property */
@@ -67,13 +84,8 @@ sync (ShowDesktopApplet *applet)
                                      &bytes_after,
                                      (gpointer) &num);
         if (!gdk_error_trap_pop () && result == Success) {
-                if (type == XA_CARDINAL && nitems > 0) {
-                        applet->block_toggle = TRUE;
-
-                        gtk_toggle_button_set_active (applet->button, *num);
-
-                        applet->block_toggle = FALSE;
-                }
+                if (type == XA_CARDINAL && nitems > 0)
+                          set_active (applet, *num);
 
                 XFree (num);
         }
@@ -137,17 +149,14 @@ screen_changed_cb (GtkWidget         *button,
         sync (applet);
 }
 
-/* Button toggled */
+/* Button clicked */
 static void
-button_toggled_cb (GtkToggleButton   *button,
+button_clicked_cb (GtkButton         *button,
                    ShowDesktopApplet *applet)
 {
         GtkWidget *widget;
         Screen *screen;
         XEvent xev;
-
-        if (applet->block_toggle)
-                return;
 
         widget = GTK_WIDGET (button);
         screen = GDK_SCREEN_XSCREEN (gtk_widget_get_screen (widget));
@@ -159,7 +168,7 @@ button_toggled_cb (GtkToggleButton   *button,
         xev.xclient.window = RootWindowOfScreen (screen);
         xev.xclient.message_type = applet->atom; 
         xev.xclient.format = 32;
-        xev.xclient.data.l[0] = button->active;
+        xev.xclient.data.l[0] = !applet->active;
         xev.xclient.data.l[1] = 0;
         xev.xclient.data.l[2] = 0;
         xev.xclient.data.l[3] = 0;
@@ -182,20 +191,21 @@ mb_panel_applet_create (const char    *id,
         /* Create applet data structure */
         applet = g_slice_new (ShowDesktopApplet);
 
-        applet->block_toggle = FALSE;
         applet->root_window = NULL;
 
         /* Create button */
-        button = gtk_toggle_button_new ();
-        applet->button = GTK_TOGGLE_BUTTON (button);
+        button = gtk_button_new ();
+        applet->button = GTK_BUTTON (button);
 
-        gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+        gtk_button_set_relief (applet->button, GTK_RELIEF_NONE);
 
         GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
 
-        image = mb_panel_scaling_image_new ("mb-applet-showdesktop");
+        image = mb_panel_scaling_image_new (orientation, NULL);
+        applet->image = MB_PANEL_SCALING_IMAGE (image);
+
         gtk_container_add (GTK_CONTAINER (button), image);
 
         g_signal_connect (button,
@@ -203,8 +213,8 @@ mb_panel_applet_create (const char    *id,
                           G_CALLBACK (screen_changed_cb),
                           applet);
         g_signal_connect (button,
-                          "toggled",
-                          G_CALLBACK (button_toggled_cb),
+                          "clicked",
+                          G_CALLBACK (button_clicked_cb),
                           applet);
 
         g_object_weak_ref (G_OBJECT (button),

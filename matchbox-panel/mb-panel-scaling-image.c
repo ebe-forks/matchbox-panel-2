@@ -12,6 +12,8 @@
 #include "mb-panel-scaling-image.h"
 
 struct _MBPanelScalingImagePrivate {
+        GtkOrientation orientation;
+
         char *icon;
 
         GtkIconTheme *icon_theme;
@@ -20,6 +22,7 @@ struct _MBPanelScalingImagePrivate {
 
 enum {
         PROP_0,
+        PROP_ORIENTATION,
         PROP_ICON
 };
 
@@ -33,6 +36,8 @@ mb_panel_scaling_image_init (MBPanelScalingImage *image)
         image->priv = G_TYPE_INSTANCE_GET_PRIVATE (image,
                                                    MB_PANEL_TYPE_SCALING_IMAGE,
                                                    MBPanelScalingImagePrivate);
+
+        image->priv->orientation = GTK_ORIENTATION_HORIZONTAL;
 
         image->priv->icon = NULL;
 }
@@ -48,6 +53,9 @@ mb_panel_scaling_image_set_property (GObject      *object,
         image = MB_PANEL_SCALING_IMAGE (object);
 
         switch (property_id) {
+        case PROP_ORIENTATION:
+                image->priv->orientation = g_value_get_enum (value);
+                break;
         case PROP_ICON:
                 mb_panel_scaling_image_set_icon (image,
                                                  g_value_get_string (value));
@@ -69,6 +77,9 @@ mb_panel_scaling_image_get_property (GObject    *object,
         image = MB_PANEL_SCALING_IMAGE (object);
 
         switch (property_id) {
+        case PROP_ORIENTATION:
+                g_value_set_enum (value, image->priv->orientation);
+                break;
         case PROP_ICON:
                 g_value_set_string (value, image->priv->icon);
                 break;
@@ -187,12 +198,11 @@ reload_icon (MBPanelScalingImage *image)
                 return;
         }
 
-        /* Because we do not request a size initially, we get allocated
-         * a slice that is the width (if vertical) or height (if horizontal)
-         * of the panel. This is the largest dimension, and it is the one
-         * we need. */
-        size = MAX (GTK_WIDGET (image)->allocation.width,
-                    GTK_WIDGET (image)->allocation.height);
+        /* Determine the required icon size */
+        if (image->priv->orientation == GTK_ORIENTATION_HORIZONTAL)
+                size = GTK_WIDGET (image)->allocation.height;
+        else
+                size = GTK_WIDGET (image)->allocation.width;
 
         file = find_icon (image->priv->icon_theme,
                           image->priv->icon,
@@ -305,6 +315,19 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
 
         g_object_class_install_property
                 (object_class,
+                 PROP_ORIENTATION,
+                 g_param_spec_enum
+                         ("orientation",
+                          "orientation",
+                          "The containing panels orientation.",
+                          GTK_TYPE_ORIENTATION,
+                          GTK_ORIENTATION_HORIZONTAL,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property
+                (object_class,
                  PROP_ICON,
                  g_param_spec_string
                          ("icon",
@@ -318,15 +341,18 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
 
 /**
  * mb_panel_scaling_image_new
+ * @orientation: The orientation of the containing panel.
  * @icon: The icon to display. This can be an absolute path, or a name
  * of an icon theme icon.
  *
  * Return value: A new #MBPanelScalingImage object displaying @icon.
  **/
 GtkWidget *
-mb_panel_scaling_image_new (const char *icon)
+mb_panel_scaling_image_new (GtkOrientation orientation,
+                            const char    *icon)
 {
         return g_object_new (MB_PANEL_TYPE_SCALING_IMAGE,
+                             "orientation", orientation,
                              "icon", icon,
                              NULL);
 }
