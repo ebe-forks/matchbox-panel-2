@@ -55,7 +55,8 @@ load_applet (const char    *name,
         /* Yes: Open it */
         module = g_module_open (path, G_MODULE_BIND_LOCAL);
         if (!module) {
-                g_warning ("Failed to load applet \"%s\" (%s).", name, g_module_error());
+                g_warning ("Failed to load applet \"%s\" (%s).",
+                           name, g_module_error());
 
                 g_free (path);
 
@@ -143,7 +144,8 @@ main (int argc, char **argv)
                 { "end-applets", 0, 0, G_OPTION_ARG_STRING, &end_applets,
                   "Applets to pack at the end", "APPLET[:APPLET_ID] ..." },
                 { "titlebar", 0, 0, G_OPTION_ARG_NONE, &want_titlebar,
-                  "Display in window titlebar (If Matchbox theme supports)", NULL },
+                  "Display in window titlebar (If Matchbox theme supports)",
+                  NULL },
                 { NULL }
         };
 
@@ -239,23 +241,22 @@ main (int argc, char **argv)
         gtk_container_add (GTK_CONTAINER (window), align);
         gtk_container_add (GTK_CONTAINER (align), box);
 
-	if (want_titlebar)
-	  {
+	if (want_titlebar) {
 	    Atom atoms[3];
 
-	    atoms[0] = XInternAtom (GDK_DISPLAY(), 
+	    atoms[0] = XInternAtom (GDK_DISPLAY (), 
 				    "_MB_WM_STATE", False);
-	    atoms[1] = XInternAtom (GDK_DISPLAY(), 
+	    atoms[1] = XInternAtom (GDK_DISPLAY (), 
 				    "_MB_WM_STATE_DOCK_TITLEBAR", False);
-	    atoms[2] = XInternAtom (GDK_DISPLAY(),
+	    atoms[2] = XInternAtom (GDK_DISPLAY (),
 				    "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP", False);
 	    gtk_widget_realize (window);
 
-	    XChangeProperty(GDK_DISPLAY(), 
-			    GDK_WINDOW_XID(window->window), 
-			    atoms[0], XA_ATOM, 32,
-			    PropModeReplace, (unsigned char *) &atoms[1], 2);
-	  }
+	    XChangeProperty (GDK_DISPLAY (), 
+			     GDK_WINDOW_XID (window->window), 
+			     atoms[0], XA_ATOM, 32,
+			     PropModeReplace, (unsigned char *) &atoms[1], 2);
+	}
 
         gtk_widget_show_all (align);
 
