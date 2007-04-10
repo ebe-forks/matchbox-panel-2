@@ -11,14 +11,11 @@
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkhbox.h>
 #include <gtk/gtkvbox.h>
-#include <gtk/gtkalignment.h>
+#include <gtk/gtkframe.h>
 
 #include <gdk/gdkx.h>
 
-#include <X11/X.h>
 #include <X11/Xatom.h>
-#include <X11/Xlib.h>
-
 
 #define DEFAULT_HEIGHT 32 /* Default panel height */
 
@@ -131,7 +128,7 @@ main (int argc, char **argv)
         GOptionGroup *option_group;
         GError *error;
         char *geometry = NULL, *start_applets = NULL, *end_applets = NULL;
-        GtkWidget *window, *box, *align;
+        GtkWidget *window, *box, *frame;
         int panel_width, panel_height;
         GtkOrientation orientation;
 	gboolean want_titlebar = FALSE;
@@ -217,48 +214,48 @@ main (int argc, char **argv)
         gtk_widget_set_size_request (window, panel_width, panel_height);
         gtk_window_resize (GTK_WINDOW (window), panel_width, panel_height);
 
+        /* Add frame */
+        frame = gtk_frame_new (NULL);
+        gtk_frame_set_shadow_type (GTK_FRAME (frame), GTK_SHADOW_NONE);
+        gtk_container_add (GTK_CONTAINER (window), frame);
+        gtk_widget_show (frame);
+
         /* Is this a horizontal or a vertical layout? */
         if (panel_width >= panel_height) {
                 orientation = GTK_ORIENTATION_HORIZONTAL;
 		
-		align =  gtk_alignment_new (0.0, 0.0, 1.0, 1.0);
-		/* FIXME: Padding should be set from theme? */
-		gtk_alignment_set_padding (GTK_ALIGNMENT (align),
-					   0, 0, 8, 8);
-
                 box = gtk_hbox_new (FALSE, 0);
         } else {
                 orientation = GTK_ORIENTATION_VERTICAL;
 
-		align = gtk_alignment_new (0.0, 0.0, 1.0, 1.0);
-		/* FIXME: Padding should be set from theme? */
-		gtk_alignment_set_padding (GTK_ALIGNMENT (align),
-					   8, 8, 0, 0);
-                
                 box = gtk_vbox_new (FALSE, 0);
         }
 
-        gtk_container_add (GTK_CONTAINER (window), align);
-        gtk_container_add (GTK_CONTAINER (align), box);
+        gtk_container_add (GTK_CONTAINER (frame), box);
+        gtk_widget_show (box);
 
+        /* Do we want to display the panel in the Matchbox titlebar? */
 	if (want_titlebar) {
-	    Atom atoms[3];
+	        Atom atoms[3];
 
-	    atoms[0] = XInternAtom (GDK_DISPLAY (), 
-				    "_MB_WM_STATE", False);
-	    atoms[1] = XInternAtom (GDK_DISPLAY (), 
-				    "_MB_WM_STATE_DOCK_TITLEBAR", False);
-	    atoms[2] = XInternAtom (GDK_DISPLAY (),
-				    "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP", False);
-	    gtk_widget_realize (window);
+	        atoms[0] = XInternAtom (GDK_DISPLAY (), 
+				        "_MB_WM_STATE",
+                                        False);
+	        atoms[1] = XInternAtom (GDK_DISPLAY (), 
+				        "_MB_WM_STATE_DOCK_TITLEBAR",
+                                        False);
+	        atoms[2] = XInternAtom (GDK_DISPLAY (),
+				        "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP",
+                                        False);
 
-	    XChangeProperty (GDK_DISPLAY (), 
-			     GDK_WINDOW_XID (window->window), 
-			     atoms[0], XA_ATOM, 32,
-			     PropModeReplace, (unsigned char *) &atoms[1], 2);
+	        gtk_widget_realize (window);
+
+	        XChangeProperty (GDK_DISPLAY (), 
+			         GDK_WINDOW_XID (window->window), 
+			         atoms[0], XA_ATOM, 32,
+			         PropModeReplace,
+                                 (unsigned char *) &atoms[1], 2);
 	}
-
-        gtk_widget_show_all (align);
 
         /* Load applets */
         load_applets (start_applets,
