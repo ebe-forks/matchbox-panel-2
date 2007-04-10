@@ -1,5 +1,10 @@
 2007-04-10  Matthew Allum  <mallum@openedhand.com>
 
+	* applets/showdesktop/Makefile.am:
+	Add desktop active image.
+
+2007-04-10  Matthew Allum  <mallum@openedhand.com>
+
 	* matchbox-panel/mb-panel.c: 
 	Add some default padding to panel edges.
 
