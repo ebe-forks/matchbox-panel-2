@@ -11,6 +11,7 @@
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkhbox.h>
 #include <gtk/gtkvbox.h>
+#include <gtk/gtkalignment.h>
 
 #include <gdk/gdkx.h>
 
@@ -129,7 +130,7 @@ main (int argc, char **argv)
         GOptionGroup *option_group;
         GError *error;
         char *geometry = NULL, *start_applets = NULL, *end_applets = NULL;
-        GtkWidget *window, *box;
+        GtkWidget *window, *box, *align;
         int panel_width, panel_height;
         GtkOrientation orientation;
 	gboolean want_titlebar = FALSE;
@@ -217,15 +218,26 @@ main (int argc, char **argv)
         /* Is this a horizontal or a vertical layout? */
         if (panel_width >= panel_height) {
                 orientation = GTK_ORIENTATION_HORIZONTAL;
+		
+		align =  gtk_alignment_new (0.0, 0.0, 1.0, 1.0);
+		/* FIXME: Padding should be set from theme? */
+		gtk_alignment_set_padding (GTK_ALIGNMENT (align),
+					   0, 0, 8, 8);
 
                 box = gtk_hbox_new (FALSE, 0);
         } else {
                 orientation = GTK_ORIENTATION_VERTICAL;
+
+		align = gtk_alignment_new (0.0, 0.0, 1.0, 1.0);
+		/* FIXME: Padding should be set from theme? */
+		gtk_alignment_set_padding (GTK_ALIGNMENT (align),
+					   8, 8, 0, 0);
                 
                 box = gtk_vbox_new (FALSE, 0);
         }
 
-        gtk_container_add (GTK_CONTAINER (window), box);
+        gtk_container_add (GTK_CONTAINER (window), align);
+        gtk_container_add (GTK_CONTAINER (align), box);
 
 	if (want_titlebar)
 	  {
@@ -245,7 +257,7 @@ main (int argc, char **argv)
 			    PropModeReplace, (unsigned char *) &atoms[1], 2);
 	  }
 
-        gtk_widget_show (box);
+        gtk_widget_show_all (align);
 
         /* Load applets */
         load_applets (start_applets,

@@ -1,3 +1,8 @@
+2007-04-10  Matthew Allum  <mallum@openedhand.com>
+
+	* matchbox-panel/mb-panel.c: 
+	Add some default padding to panel edges.
+
 2007-04-09  Jorn Baayen  <jorn@openedhand.com>
 
 	* matchbox-panel/mb-panel-scaling-image.c:
