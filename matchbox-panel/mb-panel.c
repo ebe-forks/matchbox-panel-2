@@ -223,10 +223,14 @@ main (int argc, char **argv)
         /* Is this a horizontal or a vertical layout? */
         if (panel_width >= panel_height) {
                 orientation = GTK_ORIENTATION_HORIZONTAL;
+
+                gtk_widget_set_name (frame, "MatchboxPanelFrameHorizontal");
 		
                 box = gtk_hbox_new (FALSE, 0);
         } else {
                 orientation = GTK_ORIENTATION_VERTICAL;
+
+                gtk_widget_set_name (frame, "MatchboxPanelFrameVertical");
 
                 box = gtk_vbox_new (FALSE, 0);
         }
