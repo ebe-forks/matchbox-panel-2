@@ -1,5 +1,10 @@
 2007-04-13  Ross Burton  <ross@openedhand.com>
 
+	* applets/windowselector/mb-applet-windowselector.png:
+	Update with Sato icon.
+
+2007-04-13  Ross Burton  <ross@openedhand.com>
+
 	* applets/windowselector/windowselector.c:
 	Disable the code that changes the icon to reflect the current window.
 
