@@ -1,5 +1,10 @@
 2007-04-13  Ross Burton  <ross@openedhand.com>
 
+	* applets/windowselector/windowselector.c:
+	Use the scaling image widget.
+
+2007-04-13  Ross Burton  <ross@openedhand.com>
+
 	* applets/windowselector/mb-applet-windowselector.png:
 	Update with Sato icon.
 

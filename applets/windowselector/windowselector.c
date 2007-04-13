@@ -18,6 +18,7 @@
 #include <X11/Xatom.h>
 #include <glib/gi18n.h>
 #include <matchbox-panel/mb-panel.h>
+#include <matchbox-panel/mb-panel-scaling-image.h>
 
 #define DEFAULT_WINDOW_ICON_NAME "gnome-fs-executable"
 
@@ -34,7 +35,7 @@ enum {
 
 typedef struct {
         GtkMenuItem *menu_item;
-        GtkImage *image;
+        MBPanelScalingImage *image;
         GtkMenu *menu;
 
         Atom atoms[N_ATOMS];
@@ -391,18 +392,14 @@ sync_icon (WindowSelectorApplet *applet)
                 
                 g_object_unref (icon);       
         } else {
-                gtk_image_set_from_icon_name (applet->image,
-                                              icon_name,
-                                              GTK_ICON_SIZE_MENU);
+                mb_panel_scaling_image_set_icon (MB_PANEL_SCALING_IMAGE (applet->image), icon_name);
         }
 }
 #else
 static void
 sync_icon (WindowSelectorApplet *applet)
 {
-        gtk_image_set_from_icon_name (applet->image,
-                                      "mb-applet-windowselector",
-                                      GTK_ICON_SIZE_MENU);
+        mb_panel_scaling_image_set_icon (MB_PANEL_SCALING_IMAGE (applet->image), "mb-applet-windowselector");
 }
 #endif
 
@@ -711,8 +708,8 @@ mb_panel_applet_create (const char    *id,
                           G_CALLBACK (button_press_event_cb),
                           applet);
 
-        image = gtk_image_new ();
-        applet->image = GTK_IMAGE (image);
+        image = mb_panel_scaling_image_new (orientation, "mb-applet-windowselector");
+        applet->image = MB_PANEL_SCALING_IMAGE (image);
 
         gtk_container_add (GTK_CONTAINER (menu_item), image);
 
