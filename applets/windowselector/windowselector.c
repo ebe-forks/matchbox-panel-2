@@ -341,6 +341,7 @@ window_get_icon (WindowSelectorApplet *applet,
         return pixbuf;
 }
 
+#if 0
 /* Sync icon with _MB_CURRENT_APP_WINDOW */
 static void
 sync_icon (WindowSelectorApplet *applet)
@@ -395,6 +396,15 @@ sync_icon (WindowSelectorApplet *applet)
                                               GTK_ICON_SIZE_MENU);
         }
 }
+#else
+static void
+sync_icon (WindowSelectorApplet *applet)
+{
+        gtk_image_set_from_icon_name (applet->image,
+                                      "mb-applet-windowselector",
+                                      GTK_ICON_SIZE_MENU);
+}
+#endif
 
 /* Window menu item activated. Activate the associated window. */
 static void

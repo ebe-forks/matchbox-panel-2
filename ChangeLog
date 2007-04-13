@@ -1,3 +1,8 @@
+2007-04-13  Ross Burton  <ross@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	Disable the code that changes the icon to reflect the current window.
+
 2007-04-11  Jorn Baayen  <jorn@openedhand.com>
 
 	* matchbox-panel/mb-panel.c: (main):
