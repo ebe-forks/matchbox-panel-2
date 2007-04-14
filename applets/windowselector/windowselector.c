@@ -427,31 +427,33 @@ rebuild_menu (WindowSelectorApplet *applet)
         /* Load into menu */
         for (i = 0; i < nitems; i++) {
                 char *name;
-                GdkPixbuf *icon;
-                GtkWidget *menu_item, *image;
+                GtkWidget *menu_item;
 
                 name = window_get_name (applet, windows[i]);
                 menu_item = gtk_image_menu_item_new_with_label (name);
                 g_free (name);
 
-                image = gtk_image_new ();
+                if (applet->show_images) {
+                        GtkWidget *image;
+                        GdkPixbuf *icon;
+                        
+                        image = gtk_image_new ();
 
-                /* TODO: respect applet->show_images */
-                icon = window_get_icon (applet, windows[i]);
-                if (icon) {
-                        gtk_image_set_from_pixbuf (GTK_IMAGE (image),
-                                                   icon);
-
-                        g_object_unref (icon);
-                } else {
-                        gtk_image_set_from_icon_name (GTK_IMAGE (image),
-                                                      DEFAULT_WINDOW_ICON_NAME,
-                                                      GTK_ICON_SIZE_MENU);
+                        icon = window_get_icon (applet, windows[i]);
+                        if (icon) {
+                                gtk_image_set_from_pixbuf (GTK_IMAGE (image),
+                                                           icon);
+                                g_object_unref (icon);
+                        } else {
+                                gtk_image_set_from_icon_name (GTK_IMAGE (image),
+                                                              DEFAULT_WINDOW_ICON_NAME,
+                                                              GTK_ICON_SIZE_MENU);
+                        }
+                        
+                        gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menu_item),
+                                                       image);
+                        gtk_widget_show (image);
                 }
-
-                gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menu_item),
-                                               image);
-                gtk_widget_show (image);
 
                 g_object_set_data (G_OBJECT (menu_item),
                                    "window",
@@ -489,7 +491,8 @@ static void
 menu_hide_cb (GtkMenuShell         *menu_shell,
               WindowSelectorApplet *applet)
 {
-        //gtk_widget_destroy (GTK_WIDGET (menu_shell));
+        /* TODO: destroy here breaks clicking */
+        /* gtk_widget_destroy (GTK_WIDGET (menu_shell)); */
 
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (applet->button), FALSE);
 }

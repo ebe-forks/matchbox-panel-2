@@ -1,3 +1,8 @@
+2007-04-15  Ross Burton  <ross@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	Don't fetch window icons if they won't be displayed.
+
 2007-04-14  Ross Burton  <ross@openedhand.com>
 
 	* applets/windowselector/windowselector.c:
