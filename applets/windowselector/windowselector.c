@@ -1,14 +1,13 @@
 /* 
  * (C) 2006 OpenedHand Ltd.
  *
- * Author: Jorn Baayen <jorn@openedhand.com>
+ * Authors: Jorn Baayen <jorn@openedhand.com>, Ross Burton <ross@openedhand.com>
  *
  * Licensed under the GPL v2 or greater.
  */
 
 #include <config.h>
-#include <gtk/gtkmenubar.h>
-#include <gtk/gtkmenuitem.h>
+#include <gtk/gtktogglebutton.h>
 #include <gtk/gtkimagemenuitem.h>
 #include <gtk/gtkmenu.h>
 #include <gtk/gtkimage.h>
@@ -17,6 +16,7 @@
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <glib/gi18n.h>
+
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
@@ -34,9 +34,10 @@ enum {
 };
 
 typedef struct {
-        GtkMenuItem *menu_item;
-        MBPanelScalingImage *image;
-        GtkMenu *menu;
+        GtkWidget *button;
+        GtkWidget *menu;
+        /* If the menu will be showing images. */
+        gboolean show_images;
 
         Atom atoms[N_ATOMS];
         
@@ -73,7 +74,7 @@ get_utf8_property (WindowSelectorApplet *applet,
         guchar *val;
         char *ret;
 
-        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
 
         type = None;
         val = NULL;
@@ -127,7 +128,7 @@ get_text_property (WindowSelectorApplet *applet,
         char *ret, **list;
         int result, count;
 
-        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
 
         gdk_error_trap_push ();
         result = XGetTextProperty (GDK_DISPLAY_XDISPLAY (display),
@@ -202,7 +203,7 @@ window_get_icon (WindowSelectorApplet *applet,
         guchar *pixdata;
 
         /* First, we read the contents of the _NET_WM_ICON property */
-        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
 
         type = 0;
 
@@ -229,7 +230,7 @@ window_get_icon (WindowSelectorApplet *applet,
         }
 
         /* Got it. Now what size icon are we looking for? */
-        settings = gtk_widget_get_settings (GTK_WIDGET (applet->menu_item));
+        settings = gtk_widget_get_settings (GTK_WIDGET (applet->button));
         gtk_icon_size_lookup_for_settings (settings,
                                            GTK_ICON_SIZE_MENU,
                                            &ideal_width,
@@ -342,67 +343,6 @@ window_get_icon (WindowSelectorApplet *applet,
         return pixbuf;
 }
 
-#if 0
-/* Sync icon with _MB_CURRENT_APP_WINDOW */
-static void
-sync_icon (WindowSelectorApplet *applet)
-{
-        GdkDisplay *display;
-        Atom type;
-        int format, result;
-        gulong nitems, bytes_after;
-        Window *windows;
-        GdkPixbuf *icon;
-        const char *icon_name;
-
-        /* Get _MB_CURRENT_APP_WINDOW prop */
-        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
-
-        icon = NULL;
-        icon_name = "mb-applet-windowselector";
-        type = None;
-
-        gdk_error_trap_push ();
-        result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
-                                     GDK_WINDOW_XWINDOW (applet->root_window),
-                                     applet->atoms[_MB_CURRENT_APP_WINDOW],
-                                     0,
-                                     G_MAXLONG,
-                                     False,
-                                     XA_WINDOW,
-                                     &type,
-                                     &format,
-                                     &nitems,
-                                     &bytes_after,
-                                     (gpointer) &windows);
-        if (!gdk_error_trap_pop () && result == Success) {
-                if (type == XA_WINDOW && nitems > 0 && windows[0]) {
-                        icon = window_get_icon (applet, windows[0]);
-
-                        if (!icon)
-                                icon_name = DEFAULT_WINDOW_ICON_NAME;
-                }
-
-                XFree (windows);
-        }
-
-        /* Get icon & set to image */
-        if (icon) {
-                gtk_image_set_from_pixbuf (applet->image, icon);
-                
-                g_object_unref (icon);       
-        } else {
-                mb_panel_scaling_image_set_icon (MB_PANEL_SCALING_IMAGE (applet->image), icon_name);
-        }
-}
-#else
-static void
-sync_icon (WindowSelectorApplet *applet)
-{
-        mb_panel_scaling_image_set_icon (MB_PANEL_SCALING_IMAGE (applet->image), "mb-applet-windowselector");
-}
-#endif
-
 /* Window menu item activated. Activate the associated window. */
 static void
 window_menu_item_activate_cb (GtkWidget            *widget,
@@ -416,7 +356,7 @@ window_menu_item_activate_cb (GtkWidget            *widget,
         window = GPOINTER_TO_UINT
                         (g_object_get_data (G_OBJECT (widget), "window"));
         screen = GDK_SCREEN_XSCREEN (gtk_widget_get_screen (widget));
-        toplevel = gtk_widget_get_toplevel (GTK_WIDGET (applet->menu_item));
+        toplevel = gtk_widget_get_toplevel (GTK_WIDGET (applet->button));
   
         /* Send _NET_ACTIVE_WINDOW message */
         xev.xclient.type = ClientMessage;
@@ -458,7 +398,7 @@ rebuild_menu (WindowSelectorApplet *applet)
         }
 
         /* Retrieve list of app windows from root window */
-        display = gtk_widget_get_display (GTK_WIDGET (applet->menu_item));
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
 
         type = None;
 
@@ -496,6 +436,7 @@ rebuild_menu (WindowSelectorApplet *applet)
 
                 image = gtk_image_new ();
 
+                /* TODO: respect applet->show_images */
                 icon = window_get_icon (applet, windows[i]);
                 if (icon) {
                         gtk_image_set_from_pixbuf (GTK_IMAGE (image),
@@ -548,25 +489,40 @@ static void
 menu_hide_cb (GtkMenuShell         *menu_shell,
               WindowSelectorApplet *applet)
 {
-        /* Detach menu. This will cause it be destroyed. */
-        gtk_menu_item_remove_submenu (applet->menu_item);
+        //gtk_widget_destroy (GTK_WIDGET (menu_shell));
+
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (applet->button), FALSE);
 }
 
-/* Button press event received on the main menu item */
-static gboolean
-button_press_event_cb (GtkWidget            *widget,
-                       GdkEventButton       *event,
-                       WindowSelectorApplet *applet)
+static void
+position_menu (GtkMenu *menu,
+               gint *x, gint *y,
+               gboolean *push_in,
+               gpointer user_data)
+{
+        WindowSelectorApplet *applet = user_data;
+        
+        gdk_window_get_origin (applet->button->window, x, y);
+        
+        *x += applet->button->allocation.x;
+        *y += applet->button->allocation.height;
+        *push_in = TRUE;
+}
+
+static void
+toggled_cb (GtkToggleButton *button,
+            WindowSelectorApplet *applet)
 {
         GtkWidget *menu;
-
+        
+        if (!gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (applet->button)))
+                return;
+        
         /* Set up menu */
         menu = gtk_menu_new ();
-        applet->menu = GTK_MENU (menu);
+        applet->menu = menu;
 
         g_object_add_weak_pointer (G_OBJECT (menu), (gpointer) &applet->menu);
-
-        gtk_menu_item_set_submenu (applet->menu_item, menu);
 
         g_signal_connect (menu,
                           "hide",
@@ -575,9 +531,9 @@ button_press_event_cb (GtkWidget            *widget,
         
         rebuild_menu (applet);
 
-        /* Continue processing. The builtin default handler will eventually
-         * cause the menu to pop up. */
-        return FALSE;
+        gtk_menu_popup (GTK_MENU (menu), NULL, NULL,
+                        position_menu, applet,
+                        0, gtk_get_current_event_time ());
 }
 
 /* Something happened on the root window */
@@ -601,7 +557,7 @@ filter_func (GdkXEvent            *xevent,
                            applet->atoms [_MB_CURRENT_APP_WINDOW]) {
                         /* _MB_CURRENT_APP_WINDOW changed.
                          * Update active task icon. */
-                        sync_icon (applet);
+                        //sync_icon (applet);
                 }
         }
 
@@ -626,6 +582,14 @@ screen_changed_cb (GtkWidget         *button,
 
         screen = gtk_widget_get_screen (button);
         display = gdk_screen_get_display (screen);
+
+        /* VILE */
+        gtk_widget_destroy (gtk_image_menu_item_new ());
+
+        /* Get settings */
+        g_object_get (gtk_settings_get_for_screen (screen),
+                      "gtk-menu-images", &applet->show_images,
+                      NULL);
 
         /* Get atoms */
         applet->atoms[_MB_APP_WINDOW_LIST_STACKING] =
@@ -667,9 +631,6 @@ screen_changed_cb (GtkWidget         *button,
         /* Rebuild menu if around */
         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                 rebuild_menu (applet);
-
-        /* Update current task icon */
-        sync_icon (applet);
 }
 
 G_MODULE_EXPORT GtkWidget *
@@ -677,46 +638,37 @@ mb_panel_applet_create (const char    *id,
                         GtkOrientation orientation)
 {
         WindowSelectorApplet *applet;
-        GtkWidget *menu_bar, *menu_item, *image;
+        GtkWidget *image;
 
         /* Create applet data structure */
-        applet = g_slice_new (WindowSelectorApplet);
+        applet = g_slice_new0 (WindowSelectorApplet);
 
-        applet->root_window = NULL;
-        applet->menu = NULL;
+        /* The button itself */
+        applet->button = gtk_toggle_button_new ();
+        gtk_widget_set_name (applet->button, "MatchboxPanelWindowSelector");
 
-        /* Create menu bar */
-        menu_bar = gtk_menu_bar_new ();
+        /* The image to show on the panel */
+        image = mb_panel_scaling_image_new (orientation, "mb-applet-windowselector");
+        gtk_container_add (GTK_CONTAINER (applet->button), image);
 
-        gtk_widget_set_name (menu_bar, "MatchboxPanelWindowSelector");
+        /* TODO: also pack an arrow? */
 
-        g_signal_connect (menu_bar,
+        g_signal_connect (applet->button,
                           "screen-changed",
                           G_CALLBACK (screen_changed_cb),
                           applet);
 
-        g_object_weak_ref (G_OBJECT (menu_bar),
+        g_signal_connect (applet->button,
+                          "toggled",
+                          G_CALLBACK (toggled_cb),
+                          applet);
+
+        g_object_weak_ref (G_OBJECT (applet->button),
                            (GWeakNotify) window_selector_applet_free,
                            applet);
 
-        /* Create menu item */
-        menu_item = gtk_menu_item_new ();
-        applet->menu_item = GTK_MENU_ITEM (menu_item);
-
-        g_signal_connect (menu_item,
-                          "button-press-event",
-                          G_CALLBACK (button_press_event_cb),
-                          applet);
-
-        image = mb_panel_scaling_image_new (orientation, "mb-applet-windowselector");
-        applet->image = MB_PANEL_SCALING_IMAGE (image);
-
-        gtk_container_add (GTK_CONTAINER (menu_item), image);
-
-        gtk_menu_shell_append (GTK_MENU_SHELL (menu_bar), menu_item);
-
         /* Show! */
-        gtk_widget_show_all (menu_bar);
+        gtk_widget_show_all (applet->button);
 
-        return menu_bar;
+        return applet->button;
 };

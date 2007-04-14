@@ -1,3 +1,9 @@
+2007-04-14  Ross Burton  <ross@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	Quick hack to replace the menu bar with a toggle button.  This
+	isn't finished and leaks, but it works around the weird theme bug.
+
 2007-04-13  Ross Burton  <ross@openedhand.com>
 
 	* applets/windowselector/windowselector.c:
