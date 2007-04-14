@@ -645,6 +645,9 @@ mb_panel_applet_create (const char    *id,
 
         /* The button itself */
         applet->button = gtk_toggle_button_new ();
+
+        gtk_button_set_relief (GTK_BUTTON (applet->button), GTK_RELIEF_NONE);
+
         gtk_widget_set_name (applet->button, "MatchboxPanelWindowSelector");
 
         /* The image to show on the panel */
