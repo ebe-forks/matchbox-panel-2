@@ -1,7 +1,8 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * (C) 2006, 2007 OpenedHand Ltd.
  *
- * Authors: Jorn Baayen <jorn@openedhand.com>, Ross Burton <ross@openedhand.com>
+ * Authors: Jorn Baayen <jorn@openedhand.com>
+ *          Ross Burton <ross@openedhand.com>
  *
  * Licensed under the GPL v2 or greater.
  */
@@ -405,7 +406,8 @@ rebuild_menu (WindowSelectorApplet *applet)
         gdk_error_trap_push ();
         result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
                                      GDK_WINDOW_XWINDOW (applet->root_window),
-                                     applet->atoms[_MB_APP_WINDOW_LIST_STACKING],
+                                     applet->atoms
+                                             [_MB_APP_WINDOW_LIST_STACKING],
                                      0,
                                      G_MAXLONG,
                                      False,
@@ -445,13 +447,14 @@ rebuild_menu (WindowSelectorApplet *applet)
                                                            icon);
                                 g_object_unref (icon);
                         } else {
-                                gtk_image_set_from_icon_name (GTK_IMAGE (image),
-                                                              DEFAULT_WINDOW_ICON_NAME,
-                                                              GTK_ICON_SIZE_MENU);
+                                gtk_image_set_from_icon_name
+                                        (GTK_IMAGE (image),
+                                         DEFAULT_WINDOW_ICON_NAME,
+                                         GTK_ICON_SIZE_MENU);
                         }
                         
-                        gtk_image_menu_item_set_image (GTK_IMAGE_MENU_ITEM (menu_item),
-                                                       image);
+                        gtk_image_menu_item_set_image
+                                (GTK_IMAGE_MENU_ITEM (menu_item), image);
                         gtk_widget_show (image);
                 }
 
@@ -494,7 +497,8 @@ menu_hide_cb (GtkMenuShell         *menu_shell,
         /* TODO: destroy here breaks clicking */
         /* gtk_widget_destroy (GTK_WIDGET (menu_shell)); */
 
-        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (applet->button), FALSE);
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (applet->button),
+                                      FALSE);
 }
 
 static void
@@ -556,11 +560,6 @@ filter_func (GdkXEvent            *xevent,
                          * Rebuild menu if around. */
                         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                                 rebuild_menu (applet);
-                } else if (xev->xproperty.atom ==
-                           applet->atoms [_MB_CURRENT_APP_WINDOW]) {
-                        /* _MB_CURRENT_APP_WINDOW changed.
-                         * Update active task icon. */
-                        //sync_icon (applet);
                 }
         }
 
@@ -654,7 +653,8 @@ mb_panel_applet_create (const char    *id,
         gtk_widget_set_name (applet->button, "MatchboxPanelWindowSelector");
 
         /* The image to show on the panel */
-        image = mb_panel_scaling_image_new (orientation, "mb-applet-windowselector");
+        image = mb_panel_scaling_image_new (orientation,
+                                            "mb-applet-windowselector");
         gtk_container_add (GTK_CONTAINER (applet->button), image);
 
         /* TODO: also pack an arrow? */
