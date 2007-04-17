@@ -489,23 +489,23 @@ rebuild_menu (WindowSelectorApplet *applet)
         XFree (windows);
 }
 
-/* Menu was hidden */
+/* Menu was deactivated */
 static void
-menu_hide_cb (GtkMenuShell         *menu_shell,
-              WindowSelectorApplet *applet)
+menu_selection_done_cb (GtkMenuShell         *menu_shell,
+                        WindowSelectorApplet *applet)
 {
-        /* TODO: destroy here breaks clicking */
-        /* gtk_widget_destroy (GTK_WIDGET (menu_shell)); */
+        gtk_widget_destroy (GTK_WIDGET (menu_shell));
 
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (applet->button),
                                       FALSE);
 }
 
 static void
-position_menu (GtkMenu *menu,
-               gint *x, gint *y,
+position_menu (GtkMenu  *menu,
+               int      *x,
+               int      *y,
                gboolean *push_in,
-               gpointer user_data)
+               gpointer  user_data)
 {
         WindowSelectorApplet *applet = user_data;
         
@@ -517,7 +517,7 @@ position_menu (GtkMenu *menu,
 }
 
 static void
-toggled_cb (GtkToggleButton *button,
+toggled_cb (GtkToggleButton      *button,
             WindowSelectorApplet *applet)
 {
         GtkWidget *menu;
@@ -532,8 +532,8 @@ toggled_cb (GtkToggleButton *button,
         g_object_add_weak_pointer (G_OBJECT (menu), (gpointer) &applet->menu);
 
         g_signal_connect (menu,
-                          "hide",
-                          G_CALLBACK (menu_hide_cb),
+                          "selection-done",
+                          G_CALLBACK (menu_selection_done_cb),
                           applet);
         
         rebuild_menu (applet);

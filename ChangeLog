@@ -1,6 +1,12 @@
 2007-04-17  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/windowselector/windowselector.c: (rebuild_menu),
+	(position_menu), (toggled_cb):
+	Destroy menu on selection-done.
+
+2007-04-17  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/windowselector/windowselector.c: (rebuild_menu),
 	(menu_hide_cb), (filter_func), (mb_panel_applet_create):
 	Fix indent ..
 
