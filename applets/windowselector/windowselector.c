@@ -585,7 +585,16 @@ screen_changed_cb (GtkWidget         *button,
         screen = gtk_widget_get_screen (button);
         display = gdk_screen_get_display (screen);
 
-        /* VILE */
+        /* VILE
+
+           The property GtkSetting::gtk-image-menus doesn't exist until a
+           GtkImageMenuItem has been created, and that happens after the
+           initial screen-changed signal.
+
+           The clean alternative is to check the value of the property every
+           time the menu is created, which is probably only fractionally
+           slower.
+        */
         gtk_widget_destroy (gtk_image_menu_item_new ());
 
         /* Get settings */

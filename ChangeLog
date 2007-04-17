@@ -1,5 +1,11 @@
 2007-04-17  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/windowselector/windowselector.c: (screen_changed_cb):
+
+	Commented vile code. :)
+
+2007-04-17  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/windowselector/windowselector.c: (rebuild_menu),
 	(position_menu), (toggled_cb):
 	Destroy menu on selection-done.
