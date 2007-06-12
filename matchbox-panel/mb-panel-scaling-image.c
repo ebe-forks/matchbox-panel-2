@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -16,6 +16,10 @@ struct _MBPanelScalingImagePrivate {
 
         char *icon;
 
+        gboolean caching;
+
+        GHashTable *cache;
+
         GtkIconTheme *icon_theme;
         guint icon_theme_changed_id;
 };
@@ -23,7 +27,8 @@ struct _MBPanelScalingImagePrivate {
 enum {
         PROP_0,
         PROP_ORIENTATION,
-        PROP_ICON
+        PROP_ICON,
+        PROP_CACHING
 };
 
 G_DEFINE_TYPE (MBPanelScalingImage,
@@ -40,6 +45,10 @@ mb_panel_scaling_image_init (MBPanelScalingImage *image)
         image->priv->orientation = GTK_ORIENTATION_HORIZONTAL;
 
         image->priv->icon = NULL;
+
+        image->priv->caching = FALSE;
+
+        image->priv->cache = NULL;
 }
 
 static void
@@ -59,6 +68,10 @@ mb_panel_scaling_image_set_property (GObject      *object,
         case PROP_ICON:
                 mb_panel_scaling_image_set_icon (image,
                                                  g_value_get_string (value));
+                break;
+        case PROP_CACHING:
+                mb_panel_scaling_image_set_caching
+                        (image, g_value_get_boolean (value));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -83,6 +96,9 @@ mb_panel_scaling_image_get_property (GObject    *object,
         case PROP_ICON:
                 g_value_set_string (value, image->priv->icon);
                 break;
+        case PROP_CACHING:
+                g_value_set_boolean (value, image->priv->caching);
+                break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
                 break;
@@ -104,6 +120,9 @@ mb_panel_scaling_image_dispose (GObject *object)
                 image->priv->icon_theme_changed_id = 0;
         }
 
+        if (image->priv->cache)
+                g_hash_table_destroy (image->priv->cache);
+
         object_class = G_OBJECT_CLASS (mb_panel_scaling_image_parent_class);
         object_class->dispose (object);
 }
@@ -120,6 +139,26 @@ mb_panel_scaling_image_finalize (GObject *object)
 
         object_class = G_OBJECT_CLASS (mb_panel_scaling_image_parent_class);
         object_class->finalize (object);
+}
+
+static gboolean
+return_true (gpointer a,
+             gpointer b,
+             gpointer c)
+{
+        return TRUE;
+}
+
+/* Clear the pixbuf cache */
+static void
+clear_cache (MBPanelScalingImage *image)
+{
+        if (!image->priv->caching)
+                return;
+        
+        g_hash_table_foreach_remove (image->priv->cache,
+                                     return_true,
+                                     NULL);
 }
 
 /* Strips extension off filename */
@@ -225,7 +264,12 @@ reload_icon (MBPanelScalingImage *image)
         if (pixbuf) {
                 gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
 
-                g_object_unref (pixbuf);
+                if (image->priv->caching) {
+                        g_hash_table_insert (image->priv->cache,
+                                             image->priv->icon,
+                                             pixbuf);
+                } else
+                        g_object_unref (pixbuf);
         } else {
                 g_warning (error->message);
 
@@ -238,8 +282,12 @@ static void
 icon_theme_changed_cb (GtkIconTheme   *icon_theme,
                        MBPanelScalingImage *image)
 {
-        if (GTK_WIDGET_REALIZED (image))
-                reload_icon (image);
+        if (!GTK_WIDGET_REALIZED (image))
+                return;
+
+        clear_cache (image);
+
+        reload_icon (image);
 }
 
 static void
@@ -251,6 +299,17 @@ mb_panel_scaling_image_realize (GtkWidget *widget)
         
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->realize (widget);
+}
+
+static void
+mb_panel_scaling_image_unrealize (GtkWidget *widget)
+{
+        GtkWidgetClass *widget_class;
+
+        clear_cache (MB_PANEL_SCALING_IMAGE (widget));
+
+        widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
+        widget_class->unrealize (widget);
 }
 
 static void
@@ -286,8 +345,11 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
                                   image);
 
         /* Reload icon if we are realized */
-        if (GTK_WIDGET_REALIZED (widget))
+        if (GTK_WIDGET_REALIZED (widget)) {
+                clear_cache (image);
+
                 reload_icon (MB_PANEL_SCALING_IMAGE (widget));
+        }
         
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->screen_changed (widget, old_screen);
@@ -309,6 +371,7 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
         widget_class = GTK_WIDGET_CLASS (klass);
 
         widget_class->realize        = mb_panel_scaling_image_realize;
+        widget_class->unrealize      = mb_panel_scaling_image_unrealize;
         widget_class->screen_changed = mb_panel_scaling_image_screen_changed;
 
         g_type_class_add_private (klass, sizeof (MBPanelScalingImagePrivate));
@@ -334,6 +397,18 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
                           "icon",
                           "The loaded icon.",
                           NULL,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                          G_PARAM_STATIC_BLURB));
+
+        g_object_class_install_property
+                (object_class,
+                 PROP_CACHING,
+                 g_param_spec_boolean
+                         ("caching",
+                          "Caching.",
+                          "TRUE if icons should be cached.",
+                          FALSE,
                           G_PARAM_READWRITE |
                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
                           G_PARAM_STATIC_BLURB));
@@ -375,8 +450,24 @@ mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
         if (icon)
                 image->priv->icon = g_strdup (icon);
 
-        if (GTK_WIDGET_REALIZED (image))
-                reload_icon (image);
+        if (!GTK_WIDGET_REALIZED (image))
+                return;
+
+        if (image->priv->caching) {
+                /* Check cache first */
+                GdkPixbuf *pixbuf;
+
+                pixbuf = g_hash_table_lookup (image->priv->cache,
+                                              icon);
+
+                if (pixbuf != NULL) {
+                        gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
+
+                        return;
+                }
+        }
+
+        reload_icon (image);
 }
 
 /**
@@ -391,4 +482,53 @@ mb_panel_scaling_image_get_icon (MBPanelScalingImage *image)
         g_return_val_if_fail (MB_PANEL_IS_SCALING_IMAGE (image), NULL);
         
         return image->priv->icon;
+}
+
+/**
+ * mb_panel_scaling_image_set_caching
+ * @image: A #MBPanelScalingImage
+ * @caching: TRUE if image caching is desired
+ *
+ * Sets the caching mode to @caching. If @caching is TRUE, 
+ * #GdkPixbuf objects previously loaded by @image will be kept around.
+ * Use this if you want to quickly alternate between a fixed set of images.
+ *
+ * Setting @caching to FALSE causes the cache to be purged.
+ **/
+void
+mb_panel_scaling_image_set_caching (MBPanelScalingImage *image,
+                                    gboolean             caching)
+{
+        g_return_if_fail (MB_PANEL_IS_SCALING_IMAGE (image));
+
+        if (image->priv->caching == caching)
+                return;
+
+        image->priv->caching = caching;
+
+        if (caching) {
+                /* Create cache */
+                image->priv->cache = g_hash_table_new_full (g_str_hash,
+                                                            g_str_equal,
+                                                            g_free,
+                                                            g_object_unref);
+        } else {
+                /* Destroy cache */
+                g_hash_table_destroy (image->priv->cache);
+                image->priv->cache = NULL;
+        }
+}
+
+/**
+ * mb_panel_scaling_image_get_caching
+ * @image: A #MBPanelScalingImage
+ *
+ * Return value: TRUE if image caching is enabled.
+ **/
+gboolean
+mb_panel_scaling_image_get_caching (MBPanelScalingImage *image)
+{
+        g_return_val_if_fail (MB_PANEL_IS_SCALING_IMAGE (image), FALSE);
+        
+        return image->priv->caching;
 }

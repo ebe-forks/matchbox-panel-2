@@ -1,3 +1,21 @@
+2007-06-12  Jorn Baayen  <jorn@openedhand.com>
+
+	* matchbox-panel/mb-panel-scaling-image.c:
+	(mb_panel_scaling_image_init),
+	(mb_panel_scaling_image_set_property),
+	(mb_panel_scaling_image_get_property),
+	(mb_panel_scaling_image_dispose),
+	(mb_panel_scaling_image_finalize), (reload_icon),
+	(icon_theme_changed_cb), (mb_panel_scaling_image_realize),
+	(mb_panel_scaling_image_unrealize),
+	(mb_panel_scaling_image_screen_changed),
+	(mb_panel_scaling_image_class_init), (mb_panel_scaling_image_new),
+	(mb_panel_scaling_image_set_icon),
+	(mb_panel_scaling_image_get_icon):
+	* matchbox-panel/mb-panel-scaling-image.h:
+
+	Added 'caching' property for caching undisplayed pixbufs.
+
 2007-04-17  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/windowselector/windowselector.c: (screen_changed_cb):

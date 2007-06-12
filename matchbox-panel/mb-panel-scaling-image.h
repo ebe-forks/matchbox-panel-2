@@ -1,5 +1,5 @@
 /* 
- * (C) 2006 OpenedHand Ltd.
+ * (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
  *
@@ -56,15 +56,22 @@ GType
 mb_panel_scaling_image_get_type (void) G_GNUC_CONST;
 
 GtkWidget *
-mb_panel_scaling_image_new      (GtkOrientation       orientation,
-                                 const char          *icon);
+mb_panel_scaling_image_new         (GtkOrientation       orientation,
+                                    const char          *icon);
 
 void
-mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
-                                 const char          *icon);
+mb_panel_scaling_image_set_icon    (MBPanelScalingImage *image,
+                                    const char          *icon);
 
 const char *
-mb_panel_scaling_image_get_icon (MBPanelScalingImage *image);
+mb_panel_scaling_image_get_icon    (MBPanelScalingImage *image);
+
+void
+mb_panel_scaling_image_set_caching (MBPanelScalingImage *image,
+                                    gboolean             cached);
+
+gboolean
+mb_panel_scaling_image_get_caching (MBPanelScalingImage *image);
 
 G_END_DECLS
 
