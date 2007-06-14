@@ -1,3 +1,14 @@
+2007-06-14  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/Makefile.am:
+	* applets/startup/Makefile.am:
+	* applets/startup/data/Makefile.am:
+	* applets/startup/startup.c:
+	* configure.ac:
+
+	Added startup notification applet. Ported from mb-panel1 by
+	Stefan Schmidt <stefan@datenfreihafen.org>.
+
 2007-06-12  Jorn Baayen  <jorn@openedhand.com>
 
 	* matchbox-panel/mb-panel-scaling-image.c:

@@ -28,6 +28,9 @@ if test x$enable_startup_notification != xno; then
   AC_DEFINE(USE_LIBSN, [1], [Has Startup Notification Support])
 fi
 
+AC_SUBST(SN_LIBS)
+AC_SUBST(SN_CFLAGS)
+
 # libnotify
 AC_ARG_ENABLE(libnotify,
   [  --enable-libnotify   enable libnotify support],
@@ -65,6 +68,8 @@ matchbox-panel/Makefile
 applets/Makefile
 applets/clock/Makefile
 applets/launcher/Makefile
+applets/startup/Makefile
+applets/startup/data/Makefile
 applets/systray/Makefile
 applets/showdesktop/Makefile
 applets/windowselector/Makefile
