@@ -1,5 +1,11 @@
 2007-06-14  Jorn Baayen  <jorn@openedhand.com>
 
+	* applets/startup/startup.c:
+
+	Clean up indentation.
+
+2007-06-14  Jorn Baayen  <jorn@openedhand.com>
+
 	* applets/Makefile.am:
 	* applets/startup/Makefile.am:
 	* applets/startup/data/Makefile.am:
