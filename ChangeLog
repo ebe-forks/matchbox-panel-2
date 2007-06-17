@@ -1,3 +1,11 @@
+2007-06-17  Jorn Baayen  <jorn@openedhand.com>
+
+	* applets/Makefile.am:
+	* configure.ac:
+
+	Don't build startup applet if libsn is not available.
+	Fixes #613.
+
 2007-06-14  Jorn Baayen  <jorn@openedhand.com>
 
 	* applets/startup/startup.c:

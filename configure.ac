@@ -26,10 +26,8 @@ if test x$enable_startup_notification != xno; then
     AC_MSG_ERROR([*** Required Startup Notification library not installed ***]))
 
   AC_DEFINE(USE_LIBSN, [1], [Has Startup Notification Support])
+  AM_CONDITIONAL(HAVE_LIBSN, true)
 fi
-
-AC_SUBST(SN_LIBS)
-AC_SUBST(SN_CFLAGS)
 
 # libnotify
 AC_ARG_ENABLE(libnotify,
