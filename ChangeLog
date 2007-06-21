@@ -1,3 +1,9 @@
+2007-06-21  Marcin Juszkiewicz <hrw@openedhand.com>
+
+	* applets/battery/battery.c: (mb_panel_applet_create:
+
+	Fixed APM checking - libapm has insane return codes.
+
 2007-06-21  Rob Bradford  <rob@openedhand.com>
 
 	* applets/systray/Makefile.am:

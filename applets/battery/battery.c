@@ -90,7 +90,7 @@ mb_panel_applet_create (const char    *id,
         GtkWidget *image;
 
         /* Check that we have APM support */
-        if (!apm_exists ()) {
+        if (1 == apm_exists ()) {
                 g_warning ("No APM support");
 
                 return NULL;
