@@ -5,29 +5,30 @@ AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) $(LIBNOTIFY_CFLAGS) \
 appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libsystray.la
 
-eggmarshalers.h: eggmarshalers.list
+na-marshal.h: na-marshal.list
 	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --header > xgen-emh \
-	&& cp xgen-emh eggmarshalers.h \
+	&& $(GLIB_GENMARSHAL) --prefix=_na_marshal na-marshal.list --header > xgen-emh \
+	&& cp xgen-emh na-marshal.h \
 	&& rm -f xgen-emh xgen-emh~
 
-eggmarshalers.c: eggmarshalers.list
+na-marshal.c: na-marshal.list
 	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_egg_marshal eggmarshalers.list --body > xgen-emc \
-	&& cp xgen-emc eggmarshalers.c \
+	&& $(GLIB_GENMARSHAL) --prefix=_na_marshal na-marshal.list --body > xgen-emc \
+	&& cp xgen-emc na-marshal.c \
 	&& rm -f xgen-emc xgen-emc~
 
-BUILT_SOURCES = eggmarshalers.c eggmarshalers.h
+BUILT_SOURCES = na-marshal.c na-marshal.h
 
 libsystray_la_SOURCES = $(BUILT_SOURCES) \
-                        eggtraymanager.c \
-			eggtraymanager.h \
+                        na-tray-manager.c \
+			na-tray-manager.h \
 			systray.c
 libsystray_la_LIBADD = $(LIBNOTIFY_LIBS)
 libsystray_la_LDFLAGS = -avoid-version
 
-EXTRA_DIST = eggmarshalers.list
+EXTRA_DIST = na-marshal.list
 
 CLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
+
