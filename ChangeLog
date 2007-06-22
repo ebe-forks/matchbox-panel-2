@@ -1,3 +1,8 @@
+2007-06-22  Matthew Allum  <mallum@openedhand.com>
+
+	* applets/startup/data/hourglass-*.png
+	Update startup icons with Neils 'spinner' from fluttr.
+
 2007-06-21  Marcin Juszkiewicz <hrw@openedhand.com>
 
 	* applets/battery/battery.c: (mb_panel_applet_create:
