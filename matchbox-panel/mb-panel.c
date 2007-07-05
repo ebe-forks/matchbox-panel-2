@@ -190,6 +190,9 @@ main (int argc, char **argv)
         gtk_window_set_type_hint (GTK_WINDOW (window),
                                   GDK_WINDOW_TYPE_HINT_DOCK);
 
+	/* No key focus please */
+	gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
+
         /* Set default panel height 	*/
         gtk_window_set_default_size (GTK_WINDOW (window),
                                      -1,

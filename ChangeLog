@@ -1,3 +1,8 @@
+2007-07-05  Matthew Allum  <mallum@openedhand.com>
+
+	* matchbox-panel/mb-panel.c:
+	Request not to receive key focus on panel window.
+
 2007-06-22  Matthew Allum  <mallum@openedhand.com>
 
 	* applets/startup/data/hourglass-*.png
