@@ -113,7 +113,7 @@ load_applets (const char    *applets_desc,
                                       bits[1],
                                       orientation);
                 if (applet)
-                        pack_func (box, applet, FALSE, FALSE, 0);
+                        pack_func (box, applet, FALSE, FALSE, 3);
 
                 g_strfreev (bits);
         }
