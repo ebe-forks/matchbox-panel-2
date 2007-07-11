@@ -18,6 +18,7 @@
 #include <X11/Xatom.h>
 
 #define DEFAULT_HEIGHT 32 /* Default panel height */
+#define PADDING        4  /* Applet padding */
 
 static GList *open_modules = NULL; /* List of open modules */
 
@@ -113,7 +114,7 @@ load_applets (const char    *applets_desc,
                                       bits[1],
                                       orientation);
                 if (applet)
-                        pack_func (box, applet, FALSE, FALSE, 3);
+                        pack_func (box, applet, FALSE, FALSE, PADDING);
 
                 g_strfreev (bits);
         }

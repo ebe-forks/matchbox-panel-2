@@ -1,3 +1,9 @@
+2007-07-11  Jorn Baayen  <jorn@openedhand.com>
+
+	* matchbox-panel/mb-panel.c: (load_applets):
+
+	Padding to 4.
+
 2007-07-05  Jorn Baayen  <jorn@openedhand.com>
 
 	* matchbox-panel/mb-panel.c: (load_applets):
