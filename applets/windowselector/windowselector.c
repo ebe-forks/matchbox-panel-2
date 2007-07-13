@@ -638,7 +638,6 @@ update_current_app (WindowSelectorApplet *applet)
                 if (applet->mode == MODE_DYNAMIC_ICON
                                 || applet->mode == MODE_ICON_NAME)
                 {
-                        gtk_image_clear (GTK_IMAGE (applet->image));
                         gtk_widget_hide (applet->image);
                 }
 

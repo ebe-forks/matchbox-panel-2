@@ -1,5 +1,11 @@
 2007-07-13  Rob Bradford  <rob@openedhand.com>
 
+	* applets/windowselector/windowselector.c: (update_current_app):
+	Remove the use of gtk_image_clear since that is only available in 2.8
+	and later.
+
+2007-07-13  Rob Bradford  <rob@openedhand.com>
+
 	* applets/windowselector/windowselector.c:
 	(get_current_app_window), (update_current_app), (filter_func),
 	(screen_changed_cb), (mb_panel_applet_create):
