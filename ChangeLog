@@ -1,3 +1,18 @@
+2007-07-13  Rob Bradford  <rob@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	(get_current_app_window), (update_current_app), (filter_func),
+	(screen_changed_cb), (mb_panel_applet_create):
+	Use the 'id' attribute for the windowselector to provide alternative
+	display modes. Four modes are available:
+	  'static-icon' which shows the same icon all the time, 
+	  'dynamic-icon' which acts like the GNOME window selector with the icon 
+	  changing based on the current app,
+	  'name' gives just the name for the current window like the window selector 
+	  in Matchbox,
+	  'icon-name' is the same but with the current app icon included as
+	  well.
+
 2007-07-12  Matthew Allum  <mallum@openedhand.com>
 
 	* applets/startup/data/hourglass-*.png
@@ -15,7 +30,6 @@
 
 	Pack applets with a padding of 3 pixels.
 
->>>>>>> .r1592
 2007-07-05  Matthew Allum  <mallum@openedhand.com>
 
 	* matchbox-panel/mb-panel.c:

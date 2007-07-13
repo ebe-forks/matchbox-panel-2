@@ -14,9 +14,12 @@
 #include <gtk/gtkimage.h>
 #include <gtk/gtkiconfactory.h>
 #include <gtk/gtkmain.h>
+#include <gtk/gtkhbox.h>
+#include <gtk/gtklabel.h>
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <glib/gi18n.h>
+#include <string.h>
 
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
@@ -34,15 +37,28 @@ enum {
         N_ATOMS
 };
 
+typedef enum {
+  MODE_STATIC_ICON,
+  MODE_DYNAMIC_ICON,
+  MODE_ICON_NAME,
+  MODE_NAME
+} WindowSelectorAppletMode;
+
 typedef struct {
         GtkWidget *button;
         GtkWidget *menu;
+        GtkWidget *image;
+        GtkWidget *static_image;
+        GtkWidget *label;
+
         /* If the menu will be showing images. */
         gboolean show_images;
 
         Atom atoms[N_ATOMS];
         
         GdkWindow *root_window;
+
+        WindowSelectorAppletMode mode;
 } WindowSelectorApplet;
 
 static GdkFilterReturn
@@ -344,6 +360,51 @@ window_get_icon (WindowSelectorApplet *applet,
         return pixbuf;
 }
 
+static Window
+get_current_app_window (WindowSelectorApplet *applet)
+{
+        GdkDisplay *display;
+        Atom type;
+        int format, result;
+        gulong nitems, bytes_after, *data;
+        Window window;
+
+        display = gtk_widget_get_display (GTK_WIDGET (applet->button));
+
+        type = 0;
+
+        gdk_error_trap_push ();
+
+
+        result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
+                                     GDK_WINDOW_XWINDOW (applet->root_window),
+                                     applet->atoms[_MB_CURRENT_APP_WINDOW],
+                                     0, 1,
+                                     False,
+                                     AnyPropertyType,
+                                     &type,
+                                     &format,
+                                     &nitems,
+                                     &bytes_after,
+                                     (gpointer) &data);
+
+
+        if (gdk_error_trap_pop () || result != Success)
+                return 0;
+
+        if (type != XA_WINDOW || nitems < 1) {
+                XFree (data);
+
+                return 0;
+        }
+
+        window = (Window)data[0];
+        XFree (data);
+
+        return window;
+}
+
+
 /* Window menu item activated. Activate the associated window. */
 static void
 window_menu_item_activate_cb (GtkWidget            *widget,
@@ -379,6 +440,7 @@ window_menu_item_activate_cb (GtkWidget            *widget,
 	            SubstructureRedirectMask,
 	            &xev);        
 }
+
 
 /* Rebuild the selector menu */
 static void
@@ -543,6 +605,52 @@ toggled_cb (GtkToggleButton      *button,
                         0, gtk_get_current_event_time ());
 }
 
+static void
+update_current_app (WindowSelectorApplet *applet)
+{
+        Window window;
+
+        if (applet->mode == MODE_STATIC_ICON)
+                return;
+
+        window = get_current_app_window (applet);
+
+        if (window)
+        {
+                if (applet->mode == MODE_DYNAMIC_ICON 
+                                || applet->mode == MODE_ICON_NAME)
+                {
+                        gtk_image_set_from_pixbuf (GTK_IMAGE (applet->image), 
+                                        window_get_icon (applet, window));
+                        gtk_widget_show (applet->image);
+                }
+
+                if (applet->mode == MODE_ICON_NAME
+                                || applet->mode == MODE_NAME)
+                {
+                        gchar *name = NULL;
+                        name = window_get_name (applet, window);
+                        gtk_label_set_text (GTK_LABEL (applet->label), 
+                                        name);
+                        g_free (name);
+                }
+        } else {
+                if (applet->mode == MODE_DYNAMIC_ICON
+                                || applet->mode == MODE_ICON_NAME)
+                {
+                        gtk_image_clear (GTK_IMAGE (applet->image));
+                        gtk_widget_hide (applet->image);
+                }
+
+                if (applet->mode == MODE_ICON_NAME
+                                || applet->mode == MODE_NAME)
+                {
+                        gtk_label_set_text (GTK_LABEL (applet->label),
+                                        _("No tasks"));
+                }
+        }
+}
+
 /* Something happened on the root window */
 static GdkFilterReturn
 filter_func (GdkXEvent            *xevent,
@@ -560,6 +668,10 @@ filter_func (GdkXEvent            *xevent,
                          * Rebuild menu if around. */
                         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                                 rebuild_menu (applet);
+                }
+                if (xev->xproperty.atom ==
+                    applet->atoms[_MB_CURRENT_APP_WINDOW]) {
+                        update_current_app (applet);
                 }
         }
 
@@ -642,6 +754,8 @@ screen_changed_cb (GtkWidget         *button,
         /* Rebuild menu if around */
         if (applet->menu && GTK_WIDGET_VISIBLE (applet->menu))
                 rebuild_menu (applet);
+
+        update_current_app (applet);
 }
 
 G_MODULE_EXPORT GtkWidget *
@@ -649,22 +763,66 @@ mb_panel_applet_create (const char    *id,
                         GtkOrientation orientation)
 {
         WindowSelectorApplet *applet;
-        GtkWidget *image;
+        GtkWidget *hbox;
 
         /* Create applet data structure */
         applet = g_slice_new0 (WindowSelectorApplet);
 
+        /* identify the mode */
+        if (id == NULL || strlen (id) == 0)
+        {
+                applet->mode = MODE_STATIC_ICON;
+        } else if (strcmp (id, "static-icon") == 0)
+        {
+                applet->mode = MODE_STATIC_ICON;
+        } else if (strcmp (id, "dynamic-icon") == 0)
+        {
+                applet->mode = MODE_DYNAMIC_ICON;
+        } else if (strcmp (id, "icon-name") == 0)
+        {
+                applet->mode = MODE_ICON_NAME;
+        } else if (strcmp (id, "name") == 0)
+        {
+                applet->mode = MODE_NAME;
+        } else  {
+                g_warning ("Unknown mode given as id");
+                applet->mode = MODE_STATIC_ICON;
+        }
+
         /* The button itself */
         applet->button = gtk_toggle_button_new ();
-
         gtk_button_set_relief (GTK_BUTTON (applet->button), GTK_RELIEF_NONE);
-
         gtk_widget_set_name (applet->button, "MatchboxPanelWindowSelector");
 
-        /* The image to show on the panel */
-        image = mb_panel_scaling_image_new (orientation,
-                                            "mb-applet-windowselector");
-        gtk_container_add (GTK_CONTAINER (applet->button), image);
+
+        switch (applet->mode)
+        {
+                case MODE_STATIC_ICON:
+                        applet->image = mb_panel_scaling_image_new (orientation,
+                                "mb-applet-windowselector");
+                        gtk_container_add (GTK_CONTAINER (applet->button),
+                                        applet->image);
+                        break;
+                case MODE_DYNAMIC_ICON:
+                        applet->image = gtk_image_new ();
+                        gtk_container_add (GTK_CONTAINER (applet->button),
+                                        applet->image);
+                        break;
+                case MODE_ICON_NAME:
+                        hbox = gtk_hbox_new (FALSE, 4);
+                        applet->label = gtk_label_new (NULL);
+                        applet->image = gtk_image_new ();
+                        gtk_box_pack_start (GTK_BOX (hbox), applet->image,
+                                        FALSE, FALSE, 2);
+                        gtk_box_pack_start (GTK_BOX (hbox), applet->label, 
+                                        TRUE, TRUE, 0);
+                        gtk_container_add (GTK_CONTAINER (applet->button), hbox);
+                        break;
+                case MODE_NAME:
+                        applet->label = gtk_label_new (NULL);
+                        gtk_container_add (GTK_CONTAINER (applet->button), applet->label);
+                        break;
+        }
 
         /* TODO: also pack an arrow? */
 
