@@ -38,10 +38,10 @@ enum {
 };
 
 typedef enum {
-  MODE_STATIC_ICON,
-  MODE_DYNAMIC_ICON,
-  MODE_ICON_NAME,
-  MODE_NAME
+        MODE_STATIC_ICON,
+        MODE_DYNAMIC_ICON,
+        MODE_ICON_NAME,
+        MODE_NAME
 } WindowSelectorAppletMode;
 
 typedef struct {
@@ -794,33 +794,32 @@ mb_panel_applet_create (const char    *id,
         gtk_widget_set_name (applet->button, "MatchboxPanelWindowSelector");
 
 
-        switch (applet->mode)
-        {
-                case MODE_STATIC_ICON:
-                        applet->image = mb_panel_scaling_image_new (orientation,
-                                "mb-applet-windowselector");
-                        gtk_container_add (GTK_CONTAINER (applet->button),
-                                        applet->image);
-                        break;
-                case MODE_DYNAMIC_ICON:
-                        applet->image = gtk_image_new ();
-                        gtk_container_add (GTK_CONTAINER (applet->button),
-                                        applet->image);
-                        break;
-                case MODE_ICON_NAME:
-                        hbox = gtk_hbox_new (FALSE, 4);
-                        applet->label = gtk_label_new (NULL);
-                        applet->image = gtk_image_new ();
-                        gtk_box_pack_start (GTK_BOX (hbox), applet->image,
-                                        FALSE, FALSE, 2);
-                        gtk_box_pack_start (GTK_BOX (hbox), applet->label, 
-                                        TRUE, TRUE, 0);
-                        gtk_container_add (GTK_CONTAINER (applet->button), hbox);
-                        break;
-                case MODE_NAME:
-                        applet->label = gtk_label_new (NULL);
-                        gtk_container_add (GTK_CONTAINER (applet->button), applet->label);
-                        break;
+        switch (applet->mode) {
+        case MODE_STATIC_ICON:
+                applet->image = mb_panel_scaling_image_new (orientation,
+                        "mb-applet-windowselector");
+                gtk_container_add (GTK_CONTAINER (applet->button),
+                                applet->image);
+                break;
+        case MODE_DYNAMIC_ICON:
+                applet->image = gtk_image_new ();
+                gtk_container_add (GTK_CONTAINER (applet->button),
+                                applet->image);
+                break;
+        case MODE_ICON_NAME:
+                hbox = gtk_hbox_new (FALSE, 4);
+                applet->label = gtk_label_new (NULL);
+                applet->image = gtk_image_new ();
+                gtk_box_pack_start (GTK_BOX (hbox), applet->image,
+                                FALSE, FALSE, 2);
+                gtk_box_pack_start (GTK_BOX (hbox), applet->label, 
+                                TRUE, TRUE, 0);
+                gtk_container_add (GTK_CONTAINER (applet->button), hbox);
+                break;
+        case MODE_NAME:
+                applet->label = gtk_label_new (NULL);
+                gtk_container_add (GTK_CONTAINER (applet->button), applet->label);
+                break;
         }
 
         /* TODO: also pack an arrow? */

@@ -1,3 +1,9 @@
+2007-07-22  Rob Bradford  <rob@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	(mb_panel_applet_create):
+	Fix coding style.
+
 2007-07-13  Rob Bradford  <rob@openedhand.com>
 
 	* applets/windowselector/windowselector.c: (update_current_app):
