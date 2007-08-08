@@ -1,1 +1,12 @@
-libgconf-bridge/gconf-bridge.c
+matchbox-panel/mb-panel-scaling-image.c
+matchbox-panel/mb-panel.c
+applets/launcher/launcher.c
+applets/startup/startup.c
+applets/windowselector/windowselector.c
+applets/battery/battery.c
+applets/showdesktop/showdesktop.c
+applets/clock/clock.c
+applets/systray/systray.c
+applets/systray/na-marshal.c
+applets/systray/na-tray-manager.c
+

@@ -1,6 +1,9 @@
-2007-04-10  Matthew Allum  <mallum@openedhand.com>
+2007-08-08  Rob Bradford  <rob@openedhand.com>
 
-	reviewed by: <delete if not using a buddy>
+	* POTFILES.in:
+	Add source files to POTFILES.in.
+
+2007-04-10  Matthew Allum  <mallum@openedhand.com>
 
 	* Makefile.in.in:
 
