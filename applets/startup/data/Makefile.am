@@ -1,5 +1,5 @@
 imagedir = $(pkgdatadir)/startup
-image_DATA = hourglass-0.png        \
+dist_image_DATA = hourglass-0.png        \
 	     hourglass-1.png         \
 	     hourglass-2.png         \
 	     hourglass-3.png         \

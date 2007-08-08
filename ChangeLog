@@ -1,3 +1,10 @@
+2007-08-08  Rob Bradford  <rob@openedhand.com>
+
+	* applets/showdesktop/Makefile.am:
+	* applets/startup/data/Makefile.am:
+	* applets/windowselector/Makefile.am:
+	Make sure various data files are included in the dist.
+
 2007-07-22  Rob Bradford  <rob@openedhand.com>
 
 	* applets/windowselector/windowselector.c:
