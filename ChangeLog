@@ -1,3 +1,9 @@
+2007-10-11  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	Use AC_HELP_STRING, make the help output reflect reality, and fix
+	building without libstartup-notification.
+
 2007-08-08  Rob Bradford  <rob@openedhand.com>
 
 	* applets/showdesktop/Makefile.am:

@@ -18,7 +18,7 @@ PKG_CHECK_MODULES(MATCHBOX_PANEL,
 
 # startup-notification
 AC_ARG_ENABLE(startup_notification,
-  [  --enable-startup-notification   enable startup notification support],
+     AC_HELP_STRING([--disable-startup-notification], [disable startup notification support]),
      enable_startup_notification=$enableval, enable_startup_notification=yes )
 
 if test x$enable_startup_notification != xno; then
@@ -26,12 +26,12 @@ if test x$enable_startup_notification != xno; then
     AC_MSG_ERROR([*** Required Startup Notification library not installed ***]))
 
   AC_DEFINE(USE_LIBSN, [1], [Has Startup Notification Support])
-  AM_CONDITIONAL(HAVE_LIBSN, true)
 fi
+AM_CONDITIONAL(HAVE_LIBSN, test x$enable_startup_notification = xyes)
 
 # libnotify
 AC_ARG_ENABLE(libnotify,
-  [  --enable-libnotify   enable libnotify support],
+     AC_HELP_STRING([--disable-libnotify], [disable libnotifysupport]),
      enable_libnotify=$enableval, enable_libnotify=yes )
 
 if test x$enable_libnotify != xno; then
