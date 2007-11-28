@@ -29,9 +29,10 @@ if test x$enable_startup_notification != xno; then
 fi
 AM_CONDITIONAL(HAVE_LIBSN, test x$enable_startup_notification = xyes)
 
+
 # libnotify
 AC_ARG_ENABLE(libnotify,
-     AC_HELP_STRING([--disable-libnotify], [disable libnotifysupport]),
+     AC_HELP_STRING([--disable-libnotify], [disable libnotify support]),
      enable_libnotify=$enableval, enable_libnotify=yes )
 
 if test x$enable_libnotify != xno; then
