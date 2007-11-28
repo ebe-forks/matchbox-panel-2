@@ -1,3 +1,5 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
+
 /* 
  * (C) 2006 OpenedHand Ltd.
  *
@@ -5,6 +7,10 @@
  *
  * Licensed under the GPL v2 or greater.
  */
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <glib/gi18n.h>
 #include <gtk/gtkmain.h>
@@ -132,17 +138,17 @@ main (int argc, char **argv)
         GtkWidget *window, *box, *frame;
         int panel_width, panel_height;
         GtkOrientation orientation;
-	gboolean want_titlebar = FALSE;
+        gboolean want_titlebar = FALSE;
 
         GOptionEntry option_entries[] = {
                 { "geometry", 0, 0, G_OPTION_ARG_STRING, &geometry,
-                  "Panel geometry", "[WIDTH][xHEIGHT][{+-}X[{+-}Y]]" },
+                  N_("Panel geometry"), N_("[WIDTH][xHEIGHT][{+-}X[{+-}Y]]") },
                 { "start-applets", 0, 0, G_OPTION_ARG_STRING, &start_applets,
-                  "Applets to pack at the start", "APPLET[:APPLET_ID] ..." },
+                  N_("Applets to pack at the start"), N_("APPLET[:APPLET_ID] ...") },
                 { "end-applets", 0, 0, G_OPTION_ARG_STRING, &end_applets,
-                  "Applets to pack at the end", "APPLET[:APPLET_ID] ..." },
+                  N_("Applets to pack at the end"), N_("APPLET[:APPLET_ID] ...") },
                 { "titlebar", 0, 0, G_OPTION_ARG_NONE, &want_titlebar,
-                  "Display in window titlebar (If Matchbox theme supports)",
+                  N_("Display in window titlebar (If Matchbox theme supports)"),
                   NULL },
                 { NULL }
         };
@@ -191,10 +197,10 @@ main (int argc, char **argv)
         gtk_window_set_type_hint (GTK_WINDOW (window),
                                   GDK_WINDOW_TYPE_HINT_DOCK);
 
-	/* No key focus please */
-	gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
+        /* No key focus please */
+        gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
 
-        /* Set default panel height 	*/
+        /* Set default panel height */
         gtk_window_set_default_size (GTK_WINDOW (window),
                                      -1,
                                      DEFAULT_HEIGHT);
@@ -229,7 +235,7 @@ main (int argc, char **argv)
                 orientation = GTK_ORIENTATION_HORIZONTAL;
 
                 gtk_widget_set_name (frame, "MatchboxPanelFrameHorizontal");
-		
+                
                 box = gtk_hbox_new (FALSE, 0);
         } else {
                 orientation = GTK_ORIENTATION_VERTICAL;
@@ -263,7 +269,7 @@ main (int argc, char **argv)
 			         atoms[0], XA_ATOM, 32,
 			         PropModeReplace,
                                  (unsigned char *) &atoms[1], 2);
-	}
+        }
 
         /* Load applets */
         load_applets (start_applets,

@@ -1,5 +1,11 @@
 2007-11-28  Ross Burton  <ross@openedhand.com>
 
+	* matchbox-panel/mb-panel.c:
+	Mark more strings for translation, include config.h, and fix
+	indentation.
+
+2007-11-28  Ross Burton  <ross@openedhand.com>
+
 	* configure.ac:
 	Fix typo.
 
