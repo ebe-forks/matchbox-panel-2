@@ -1,6 +1,11 @@
 2007-11-28  Ross Burton  <ross@openedhand.com>
 
 	* matchbox-panel/mb-panel.c:
+	Intern the atoms in a single call instead of many calls.
+
+2007-11-28  Ross Burton  <ross@openedhand.com>
+
+	* matchbox-panel/mb-panel.c:
 	Mark more strings for translation, include config.h, and fix
 	indentation.
 

@@ -249,25 +249,21 @@ main (int argc, char **argv)
         gtk_widget_show (box);
 
         /* Do we want to display the panel in the Matchbox titlebar? */
-	if (want_titlebar) {
-	        Atom atoms[3];
+        if (want_titlebar) {
+                const char *names[] = {
+                        "_MB_WM_STATE", "_MB_WM_STATE_DOCK_TITLEBAR",
+                };
+                Atom atoms[G_N_ELEMENTS (names)];
+                
+                XInternAtoms (GDK_DISPLAY (), (char**)names,
+                              G_N_ELEMENTS (names), False, atoms);
 
-	        atoms[0] = XInternAtom (GDK_DISPLAY (), 
-				        "_MB_WM_STATE",
-                                        False);
-	        atoms[1] = XInternAtom (GDK_DISPLAY (), 
-				        "_MB_WM_STATE_DOCK_TITLEBAR",
-                                        False);
-	        atoms[2] = XInternAtom (GDK_DISPLAY (),
-				        "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP",
-                                        False);
+                gtk_widget_realize (window);
 
-	        gtk_widget_realize (window);
-
-	        XChangeProperty (GDK_DISPLAY (), 
-			         GDK_WINDOW_XID (window->window), 
-			         atoms[0], XA_ATOM, 32,
-			         PropModeReplace,
+                XChangeProperty (GDK_DISPLAY (), 
+                                 GDK_WINDOW_XID (window->window), 
+                                 atoms[0], XA_ATOM, 32,
+                                 PropModeReplace,
                                  (unsigned char *) &atoms[1], 2);
         }
 
