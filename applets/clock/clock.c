@@ -74,7 +74,7 @@ mb_panel_applet_create (const char    *id,
         struct tm *local_time;
 
         /* Create applet data structure */
-        applet = g_slice_new (ClockApplet);
+        applet = g_slice_new0 (ClockApplet);
 
         /* Create label */
         label = gtk_label_new (NULL);

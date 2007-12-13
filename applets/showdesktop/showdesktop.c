@@ -189,7 +189,7 @@ mb_panel_applet_create (const char    *id,
         GtkWidget *button, *image;
 
         /* Create applet data structure */
-        applet = g_slice_new (ShowDesktopApplet);
+        applet = g_slice_new0 (ShowDesktopApplet);
 
         applet->root_window = NULL;
 

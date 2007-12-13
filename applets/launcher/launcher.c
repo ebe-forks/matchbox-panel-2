@@ -335,7 +335,7 @@ mb_panel_applet_create (const char    *id,
         gtk_container_add (GTK_CONTAINER (event_box), image);
 
         /* Set up applet structure */
-        applet = g_slice_new (LauncherApplet);
+        applet = g_slice_new0 (LauncherApplet);
 
         applet->image = GTK_IMAGE (image);
         

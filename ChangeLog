@@ -1,5 +1,12 @@
 2007-12-13  Ross Burton  <ross@openedhand.com>
 
+	* applets/launcher/launcher.c:
+	* applets/showdesktop/showdesktop.c:
+	* applets/clock/clock.c:
+	Clear freshly allocated structures just to be safe.
+
+2007-12-13  Ross Burton  <ross@openedhand.com>
+
 	* matchbox-panel/mb-panel.c:
 	Fix stupid mistake in previous commit which removed an atom.
 
