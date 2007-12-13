@@ -1,3 +1,8 @@
+2007-12-13  Ross Burton  <ross@openedhand.com>
+
+	* matchbox-panel/mb-panel.c:
+	Fix stupid mistake in previous commit which removed an atom.
+
 2007-11-28  Ross Burton  <ross@openedhand.com>
 
 	* matchbox-panel/mb-panel.c:

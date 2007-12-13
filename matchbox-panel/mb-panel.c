@@ -251,7 +251,11 @@ main (int argc, char **argv)
         /* Do we want to display the panel in the Matchbox titlebar? */
         if (want_titlebar) {
                 const char *names[] = {
-                        "_MB_WM_STATE", "_MB_WM_STATE_DOCK_TITLEBAR",
+                        /* Set the Matchbox-specific window state */
+                        "_MB_WM_STATE",
+                        /* To the list of these atoms */
+                        "_MB_WM_STATE_DOCK_TITLEBAR",
+                        "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP"
                 };
                 Atom atoms[G_N_ELEMENTS (names)];
                 
