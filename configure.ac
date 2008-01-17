@@ -41,6 +41,7 @@ if test x$enable_libnotify != xno; then
 
   AC_DEFINE(USE_LIBNOTIFY, [1], [Has libnotify Support])
 fi
+AM_CONDITIONAL(HAVE_LIBNOTIFY, test x$enable_libnotify = xyes)
 
 # apm
 AC_CHECK_HEADERS(apm.h, enable_linux_apm=yes, enable_linux_apm=no)
@@ -69,6 +70,7 @@ applets/clock/Makefile
 applets/launcher/Makefile
 applets/startup/Makefile
 applets/startup/data/Makefile
+applets/startup-notify/Makefile
 applets/systray/Makefile
 applets/showdesktop/Makefile
 applets/windowselector/Makefile
