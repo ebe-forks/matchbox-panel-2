@@ -855,7 +855,7 @@ na_tray_manager_get_child_title (NaTrayManager      *manager,
 			       0, G_MAXLONG,
 			       False, utf8_string,
 			       &type, &format, &nitems,
-			       &bytes_after, (guchar **)&val);
+			       &bytes_after, (guchar **)(gpointer)&val);
   
   if (gdk_error_trap_pop () || result != Success)
     return NULL;
