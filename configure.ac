@@ -76,6 +76,8 @@ applets/showdesktop/Makefile
 applets/windowselector/Makefile
 applets/battery/Makefile
 applets/battery/data/Makefile
+applets/brightness/Makefile
+applets/brightness/data/Makefile
 po/Makefile.in
 po/Makefile
 ])
