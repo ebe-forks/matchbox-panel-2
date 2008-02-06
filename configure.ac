@@ -43,9 +43,24 @@ if test x$enable_libnotify != xno; then
 fi
 AM_CONDITIONAL(HAVE_LIBNOTIFY, test x$enable_libnotify = xyes)
 
+
+# DBus
+AC_ARG_ENABLE(dbus,
+     AC_HELP_STRING([--disable-dbus], [disable DBus support]),
+     enable_dbus=$enableval, enable_dbus=yes )
+
+if test x$enable_dbus != xno; then
+  PKG_CHECK_MODULES(DBUS, dbus-glib-1, ,
+    AC_MSG_ERROR([*** Required DBus library not installed ***]))
+
+  AC_DEFINE(USE_DBUS, [1], [Has DBus Support])
+fi
+AM_CONDITIONAL(HAVE_DBUS, test x$enable_dbus = xyes)
+
 # apm
 AC_CHECK_HEADERS(apm.h, enable_linux_apm=yes, enable_linux_apm=no)
 AM_CONDITIONAL(HAVE_LIBAPM, test x$enable_linux_apm = xyes)
+
 
 # glib-genmarshal
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`  
@@ -68,6 +83,7 @@ matchbox-panel/Makefile
 applets/Makefile
 applets/clock/Makefile
 applets/launcher/Makefile
+applets/notify/Makefile
 applets/startup/Makefile
 applets/startup/data/Makefile
 applets/startup-notify/Makefile

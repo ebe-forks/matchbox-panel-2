@@ -1,3 +1,13 @@
+2008-02-06  Ross Burton  <ross@openedhand.com>
+
+	* configure.ac:
+	Look for DBus
+
+	* applets/Makefile:
+	* applets/notify/*:
+	Basic notification-daemon implementation as an applet.  Needs
+	work, but its usable.
+
 2008-02-04  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:
