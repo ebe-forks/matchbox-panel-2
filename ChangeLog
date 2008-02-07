@@ -1,3 +1,10 @@
+2008-02-07  Ross Burton  <ross@openedhand.com>
+
+	* applets/systray/Makefile.am:
+	* applets/systray/systray.c:
+	Don't bother using libnotify for the balloon messages, nothing
+	uses them.
+
 2008-02-06  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:

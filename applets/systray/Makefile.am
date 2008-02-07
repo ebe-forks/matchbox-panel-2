@@ -1,6 +1,5 @@
 AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" -DGETTEXT_PACKAGE=\"matchbox-panel\"
-AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) $(LIBNOTIFY_CFLAGS) \
-	    -I$(top_srcdir) -I$(top_builddir)
+AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) -I$(top_srcdir) -I$(top_builddir)
 
 appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libsystray.la
@@ -23,7 +22,6 @@ libsystray_la_SOURCES = $(BUILT_SOURCES) \
                         na-tray-manager.c \
 			na-tray-manager.h \
 			systray.c
-libsystray_la_LIBADD = $(LIBNOTIFY_LIBS)
 libsystray_la_LDFLAGS = -avoid-version
 
 EXTRA_DIST = na-marshal.list
