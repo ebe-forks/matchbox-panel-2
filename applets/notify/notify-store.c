@@ -78,7 +78,7 @@ free_notification (Notification *n)
 static gboolean
 notification_timeout (TimeoutData *data)
 {
-  mb_notify_store_close (data->notify, data->id);
+  mb_notify_store_close (data->notify, data->id, ClosedExpired);
   g_slice_free (TimeoutData, data);
   return FALSE;
 }
@@ -144,21 +144,12 @@ notification_manager_notify (MbNotifyStore *notify,
 static gboolean
 notification_manager_close_notification (MbNotifyStore *notify, guint id, GError **error)
 {
-  MbNotifyStorePrivate *priv = GET_PRIVATE (notify);
-  Notification *notification;
-
-  if (find_notification (notify, id, &notification)) {
-    priv->notifications = g_list_remove (priv->notifications, notification);
-    free_notification (notification);
-    /* 4, undefined reason. TODO: add reason argument */
-    g_signal_emit (notify, signals[NOTIFICATION_CLOSED], 0, id, 4);
-    return TRUE;    
+  if (mb_notify_store_close (notify, id, ClosedProgramatically)) {
+    return TRUE;
   } else {
     g_set_error (error, g_quark_from_static_string("NotifyStore"), 0, "Unknown notification ID %d", id);
     return FALSE;
   }
-  
-  return TRUE;
 }
 
 static gboolean
@@ -285,8 +276,18 @@ mb_notify_store_new (void)
   return g_object_new (MB_TYPE_NOTIFY_STORE, NULL);
 }
 
-void
-mb_notify_store_close (MbNotifyStore *notify, guint id /* TODO: reason */)
+gboolean
+mb_notify_store_close (MbNotifyStore *notify, guint id, MbNotifyStoreCloseReason reason)
 {
-  notification_manager_close_notification (notify, id, NULL);
+  MbNotifyStorePrivate *priv = GET_PRIVATE (notify);
+  Notification *notification;
+
+  if (find_notification (notify, id, &notification)) {
+    priv->notifications = g_list_remove (priv->notifications, notification);
+    free_notification (notification);
+    g_signal_emit (notify, signals[NOTIFICATION_CLOSED], 0, id, reason);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }

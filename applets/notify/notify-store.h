@@ -35,22 +35,28 @@ typedef struct {
   guint timeout_id;
 } Notification;
 
+typedef enum {
+  ClosedExpired = 1,
+  ClosedDismissed,
+  ClosedProgramatically,
+  ClosedUnknown,
+} MbNotifyStoreCloseReason;
+
 typedef struct {
   GObject parent;
 } MbNotifyStore;
 
 typedef struct {
-  GObjectClass parent_class;
-  
-  void *(*notification_added) (MbNotifyStore *notify, Notification *notification);
-  void *(*notification_closed) (MbNotifyStore *notify, guint id, guint reason);
+  GObjectClass parent_class;  
+  void (*notification_added) (MbNotifyStore *notify, Notification *notification);
+  void (*notification_closed) (MbNotifyStore *notify, guint id, MbNotifyStoreCloseReason reason);
 } MbNotifyStoreClass;
 
 GType mb_notify_store_get_type (void);
 
 MbNotifyStore* mb_notify_store_new (void);
 
-void mb_notify_store_close (MbNotifyStore *notify, guint id /* TODO: reason */);
+gboolean mb_notify_store_close (MbNotifyStore *notify, guint id, MbNotifyStoreCloseReason reason);
 
 G_END_DECLS
 

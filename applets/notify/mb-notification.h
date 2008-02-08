@@ -1,7 +1,7 @@
 #ifndef _MB_NOTIFICATION
 #define _MB_NOTIFICATION
 
-#include <gtk/gtkhbox.h>
+#include <gtk/gtkeventbox.h>
 #include "notify-store.h"
 
 G_BEGIN_DECLS
@@ -29,11 +29,12 @@ G_BEGIN_DECLS
   MB_TYPE_NOTIFICATION, MbNotificationClass))
 
 typedef struct {
-  GtkHBox parent;
+  GtkEventBox parent;
 } MbNotification;
 
 typedef struct {
-  GtkHBoxClass parent_class;
+  GtkEventBoxClass parent_class;
+  void (*closed) (MbNotification *notification);
 } MbNotificationClass;
 
 GType mb_notification_get_type (void);

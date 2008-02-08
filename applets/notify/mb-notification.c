@@ -1,8 +1,15 @@
 #include <gtk/gtk.h>
 #include "mb-notification.h"
 
-G_DEFINE_TYPE (MbNotification, mb_notification, GTK_TYPE_HBOX)
+G_DEFINE_TYPE (MbNotification, mb_notification, GTK_TYPE_EVENT_BOX);
 
+enum {
+  CLOSED,
+  N_SIGNALS,
+};
+
+static guint signals[N_SIGNALS];
+  
 #define GET_PRIVATE(o) \
   (G_TYPE_INSTANCE_GET_PRIVATE ((o), MB_TYPE_NOTIFICATION, MbNotificationPrivate))
 
@@ -12,29 +19,52 @@ typedef struct _MbNotificationPrivate {
   GtkWidget *label;
 } MbNotificationPrivate;
 
+
+static gboolean
+on_button_release (MbNotification *notification, GdkEventButton *event)
+{
+  if (event->button == 1) {
+    g_signal_emit (notification, signals[CLOSED], 0);
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
 static void
 mb_notification_class_init (MbNotificationClass *klass)
 {
   g_type_class_add_private (klass, sizeof (MbNotificationPrivate));
+  
+  signals[CLOSED] = g_signal_new ("closed",
+                                  G_OBJECT_CLASS_TYPE (klass),
+                                  G_SIGNAL_RUN_FIRST,
+                                  G_STRUCT_OFFSET (MbNotificationClass, closed),
+                                  NULL, NULL,
+                                  g_cclosure_marshal_VOID__VOID,
+                                  G_TYPE_NONE, 0);
 }
 
 static void
 mb_notification_init (MbNotification *self)
 {
   MbNotificationPrivate *priv = GET_PRIVATE (self);
+  GtkWidget *box;
+
+  gtk_event_box_set_visible_window (GTK_EVENT_BOX (self), FALSE);
+  gtk_widget_add_events (GTK_WIDGET (self), GDK_BUTTON_RELEASE_MASK);
+  g_signal_connect (self, "button-release-event", G_CALLBACK (on_button_release), NULL);
   
-  g_object_set (self,
-                "border-width", 8,
-                "spacing", 8,
-                "homogeneous", FALSE,
-                NULL);
-  
+  box = gtk_hbox_new (FALSE, 8);
+  gtk_container_set_border_width (GTK_CONTAINER (box), 8);
+  gtk_container_add (GTK_CONTAINER (self), box);
+
   priv->image = gtk_image_new ();
-  gtk_box_pack_start (GTK_BOX (self), priv->image, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (box), priv->image, FALSE, FALSE, 0);
   
   priv->label = gtk_label_new (NULL);
   gtk_misc_set_alignment (GTK_MISC (priv->label), 0.0, 0.5);
-  gtk_box_pack_start (GTK_BOX (self), priv->label, TRUE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (box), priv->label, TRUE, TRUE, 0);
 }
 
 GtkWidget *

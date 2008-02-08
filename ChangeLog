@@ -1,3 +1,15 @@
+2008-02-08  Ross Burton  <ross@openedhand.com>
+
+	* applets/notify/mb-notification.[ch]:
+	Subclass event box and emit a signal when clicked.
+	
+	* applets/notify/notify-store.[ch]:
+	Add a reason argument to the public close method.
+	
+	* applets/notify/applet.c:
+	Tie all of that together, so clicking on notifications removes
+	them.
+
 2008-02-07  Ross Burton  <ross@openedhand.com>
 
 	* applets/systray/Makefile.am:

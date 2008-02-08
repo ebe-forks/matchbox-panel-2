@@ -54,6 +54,12 @@ find_widget (GtkContainer *container, guint32 id)
 }
 
 static void
+on_closed (MbNotification *notification, MbNotifyStore *store)
+{
+  mb_notify_store_close (store, mb_notification_get_id (notification), ClosedDismissed);
+}
+
+static void
 on_notification_added (MbNotifyStore *store, Notification *notification, GtkWindow *window)
 {
   GtkWidget *box, *w;
@@ -62,6 +68,7 @@ on_notification_added (MbNotifyStore *store, Notification *notification, GtkWind
   w = find_widget ((GtkContainer*)box, notification->id);
   if (!w) {
     w = mb_notification_new ();
+    g_signal_connect (w, "closed", G_CALLBACK (on_closed), store);
     gtk_widget_show_all (w);
     gtk_box_pack_start (GTK_BOX (box), w, FALSE, FALSE, 0);
   }
