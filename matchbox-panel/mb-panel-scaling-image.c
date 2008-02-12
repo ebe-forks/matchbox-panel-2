@@ -16,6 +16,8 @@ struct _MBPanelScalingImagePrivate {
 
         char *icon;
 
+        int size;
+
         gboolean caching;
 
         GHashTable *cache;
@@ -224,24 +226,30 @@ find_icon (GtkIconTheme *icon_theme,
 
 /* Reload the specified icon */
 static void
-reload_icon (MBPanelScalingImage *image)
+reload_icon (MBPanelScalingImage *image, gboolean force)
 {
         int size;
         char *file;
-	GdkPixbuf *pixbuf;
+        GdkPixbuf *pixbuf;
         GError *error;
-
-        if (!image->priv->icon) {
-                gtk_image_set_from_pixbuf (GTK_IMAGE (image), NULL);
-
-                return;
-        }
 
         /* Determine the required icon size */
         if (image->priv->orientation == GTK_ORIENTATION_HORIZONTAL)
                 size = GTK_WIDGET (image)->allocation.height;
         else
                 size = GTK_WIDGET (image)->allocation.width;
+
+        if (!force && size == image->priv->size) {
+                return;
+        }
+
+        image->priv->size = size;
+
+        if (!image->priv->icon) {
+                gtk_image_set_from_pixbuf (GTK_IMAGE (image), NULL);
+
+                return;
+        }
 
         file = find_icon (image->priv->icon_theme,
                           image->priv->icon,
@@ -287,7 +295,20 @@ icon_theme_changed_cb (GtkIconTheme   *icon_theme,
 
         clear_cache (image);
 
-        reload_icon (image);
+        reload_icon (image, TRUE);
+}
+
+static void
+mb_panel_scaling_image_size_allocate (GtkWidget *widget,
+                                      GtkAllocation *allocation)
+{
+        MBPanelScalingImage *image = MB_PANEL_SCALING_IMAGE (widget);
+        GtkWidgetClass *widget_class;
+
+        widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
+        widget_class->size_allocate (widget, allocation);
+        
+        reload_icon (image, FALSE);
 }
 
 static void
@@ -295,7 +316,7 @@ mb_panel_scaling_image_realize (GtkWidget *widget)
 {
         GtkWidgetClass *widget_class;
 
-        reload_icon (MB_PANEL_SCALING_IMAGE (widget));
+        reload_icon (MB_PANEL_SCALING_IMAGE (widget), TRUE);
         
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->realize (widget);
@@ -348,7 +369,7 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
         if (GTK_WIDGET_REALIZED (widget)) {
                 clear_cache (image);
 
-                reload_icon (MB_PANEL_SCALING_IMAGE (widget));
+                reload_icon (MB_PANEL_SCALING_IMAGE (widget), TRUE);
         }
         
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
@@ -361,15 +382,16 @@ mb_panel_scaling_image_class_init (MBPanelScalingImageClass *klass)
         GObjectClass *object_class;
         GtkWidgetClass *widget_class;
 
-	object_class = G_OBJECT_CLASS (klass);
+        object_class = G_OBJECT_CLASS (klass);
 
-	object_class->set_property = mb_panel_scaling_image_set_property;
-	object_class->get_property = mb_panel_scaling_image_get_property;
-	object_class->dispose      = mb_panel_scaling_image_dispose;
-	object_class->finalize     = mb_panel_scaling_image_finalize;
+        object_class->set_property = mb_panel_scaling_image_set_property;
+        object_class->get_property = mb_panel_scaling_image_get_property;
+        object_class->dispose      = mb_panel_scaling_image_dispose;
+        object_class->finalize     = mb_panel_scaling_image_finalize;
 
         widget_class = GTK_WIDGET_CLASS (klass);
 
+        widget_class->size_allocate  = mb_panel_scaling_image_size_allocate;
         widget_class->realize        = mb_panel_scaling_image_realize;
         widget_class->unrealize      = mb_panel_scaling_image_unrealize;
         widget_class->screen_changed = mb_panel_scaling_image_screen_changed;
@@ -467,7 +489,7 @@ mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
                 }
         }
 
-        reload_icon (image);
+        reload_icon (image, TRUE);
 }
 
 /**
