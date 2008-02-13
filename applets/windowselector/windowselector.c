@@ -1,4 +1,4 @@
-h/* 
+/* 
  * (C) 2006, 2007 OpenedHand Ltd.
  *
  * Authors: Jorn Baayen <jorn@openedhand.com>
