@@ -1,5 +1,11 @@
 2008-02-13  Ross Burton  <ross@openedhand.com>
 
+	* applets/showdesktop/Makefile.am:
+	* applets/windowselector/Makefile.am:
+	Don't try and install files I just deleted.
+
+2008-02-13  Ross Burton  <ross@openedhand.com>
+
 	* applets/showdesktop/showdesktop.c:
 	Use "user-desktop" stock icon instead of custom icons.
 	
