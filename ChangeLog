@@ -1,5 +1,14 @@
 2008-02-13  Ross Burton  <ross@openedhand.com>
 
+	* applets/showdesktop/showdesktop.c:
+	Use "user-desktop" stock icon instead of custom icons.
+	
+	* applets/showdesktop/mb-applet-showdesktop-active.png:
+	* applets/showdesktop/mb-applet-showdesktop.png:
+	Delete.
+
+2008-02-13  Ross Burton  <ross@openedhand.com>
+
 	* applets/windowselector/windowselector.c:
 	Use icons from the icon theme.
 	
