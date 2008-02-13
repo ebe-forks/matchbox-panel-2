@@ -1,4 +1,4 @@
-/* 
+h/* 
  * (C) 2006, 2007 OpenedHand Ltd.
  *
  * Authors: Jorn Baayen <jorn@openedhand.com>
@@ -24,7 +24,7 @@
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
-#define DEFAULT_WINDOW_ICON_NAME "gnome-fs-executable"
+#define DEFAULT_WINDOW_ICON_NAME "application-x-executable"
 
 enum {
         _MB_APP_WINDOW_LIST_STACKING,
@@ -797,7 +797,7 @@ mb_panel_applet_create (const char    *id,
         switch (applet->mode) {
         case MODE_STATIC_ICON:
                 applet->image = mb_panel_scaling_image_new (orientation,
-                        "mb-applet-windowselector");
+                        "task-switcher");
                 gtk_container_add (GTK_CONTAINER (applet->button),
                                 applet->image);
                 break;
