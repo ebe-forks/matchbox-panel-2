@@ -38,34 +38,34 @@ timeout (BatteryApplet *applet)
         apm_read (&info);
 
         if (info.battery_status == BATTERY_STATUS_ABSENT)
-                icon = DATADIR "/ac-adapter.png";
+                icon = "ac-adapter.png";
         else {
                 if (info.ac_line_status == AC_LINE_STATUS_ON) {
                         if (info.battery_percentage < 10)
-                                icon = DATADIR "battery-charging-000.png";
+                                icon = "battery-charging-000.png";
                         else if (info.battery_percentage < 30)
-                                icon = DATADIR "battery-charging-020.png";
+                                icon = "battery-charging-020.png";
                         else if (info.battery_percentage < 50)
-                                icon = DATADIR "battery-charging-040.png";
+                                icon = "battery-charging-040.png";
                         else if (info.battery_percentage < 70)
-                                icon = DATADIR "battery-charging-060.png";
+                                icon = "battery-charging-060.png";
                         else if (info.battery_percentage < 90)
-                                icon = DATADIR "battery-charging-080.png";
+                                icon = "battery-charging-080.png";
                         else
-                                icon = DATADIR "battery-charging-100.png";
+                                icon = "battery-charging-100.png";
                 } else {
                         if (info.battery_percentage < 10)
-                                icon = DATADIR "battery-discharging-000.png";
+                                icon = "battery-discharging-000.png";
                         else if (info.battery_percentage < 30)
-                                icon = DATADIR "battery-discharging-020.png";
+                                icon = "battery-discharging-020.png";
                         else if (info.battery_percentage < 50)
-                                icon = DATADIR "battery-discharging-040.png";
+                                icon = "battery-discharging-040.png";
                         else if (info.battery_percentage < 70)
-                                icon = DATADIR "battery-discharging-060.png";
+                                icon = "battery-discharging-060.png";
                         else if (info.battery_percentage < 90)
-                                icon = DATADIR "battery-discharging-080.png";
+                                icon = "battery-discharging-080.png";
                         else
-                                icon = DATADIR "battery-discharging-100.png";
+                                icon = "battery-discharging-100.png";
                 }
         }
 

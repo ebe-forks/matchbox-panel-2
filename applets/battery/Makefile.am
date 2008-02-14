@@ -1,5 +1,3 @@
-SUBDIRS = data
-
 AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
             -DGETTEXT_PACKAGE=\"matchbox-panel\" \
 	    -DDATADIR=\"$(pkgdatadir)/battery/\"

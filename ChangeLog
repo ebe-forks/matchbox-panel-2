@@ -1,3 +1,9 @@
+2008-02-14  Ross Burton  <ross@openedhand.com>
+
+	* applets/battery/data/:
+	* applets/battery/battery.c:
+	Don't use private icons, use the icon theme.
+
 2008-02-13  Ross Burton  <ross@openedhand.com>
 
 	* applets/showdesktop/Makefile.am:
