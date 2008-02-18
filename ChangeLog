@@ -1,5 +1,17 @@
 2008-02-18  Ross Burton  <ross@openedhand.com>
 
+	* configure.ac:
+	Don't check for libnotify.
+
+	* applets/Makefile.am:
+	Build startup-notify if we have DBus.
+
+	* applets/startup-notify:
+	Don't use libnotify as it doesn't conform to the specification and
+	makes blocking DBus calls.  Instead, call it directly.
+
+2008-02-18  Ross Burton  <ross@openedhand.com>
+
 	* applets/clock/clock.c:
 	Don't set a colour in the code, let the theme style it.
 

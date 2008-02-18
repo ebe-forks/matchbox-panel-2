@@ -30,20 +30,6 @@ fi
 AM_CONDITIONAL(HAVE_LIBSN, test x$enable_startup_notification = xyes)
 
 
-# libnotify
-AC_ARG_ENABLE(libnotify,
-     AC_HELP_STRING([--disable-libnotify], [disable libnotify support]),
-     enable_libnotify=$enableval, enable_libnotify=yes )
-
-if test x$enable_libnotify != xno; then
-  PKG_CHECK_MODULES(LIBNOTIFY, libnotify, ,
-    AC_MSG_ERROR([*** Required libnotify library not installed ***]))
-
-  AC_DEFINE(USE_LIBNOTIFY, [1], [Has libnotify Support])
-fi
-AM_CONDITIONAL(HAVE_LIBNOTIFY, test x$enable_libnotify = xyes)
-
-
 # DBus
 AC_ARG_ENABLE(dbus,
      AC_HELP_STRING([--disable-dbus], [disable DBus support]),
