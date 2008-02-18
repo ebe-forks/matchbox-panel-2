@@ -84,7 +84,7 @@ notify_send (StartupApplet *applet, const char *summary)
                            notify_done, applet, NULL,
                            G_TYPE_STRING, "matchbox-panel",
                            G_TYPE_UINT, applet->notify_id,
-                           G_TYPE_STRING, NULL, /* icon name */
+                           G_TYPE_STRING, "application-x-generic",
                            G_TYPE_STRING, summary,
                            G_TYPE_STRING, NULL, /* body */
                            G_TYPE_STRV, NULL, /* actions */

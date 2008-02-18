@@ -1,5 +1,10 @@
 2008-02-18  Ross Burton  <ross@openedhand.com>
 
+	* applets/startup-notify/startup.c:
+	Set the notification icon to the generic application icon for now.
+
+2008-02-18  Ross Burton  <ross@openedhand.com>
+
 	* configure.ac:
 	Don't check for libnotify.
 
