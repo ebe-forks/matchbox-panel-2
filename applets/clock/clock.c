@@ -35,14 +35,11 @@ timeout (ClockApplet *applet)
         t = time (NULL);
         strftime (str, 6, "%H:%M", localtime (&t));
         
-	/* FIXME: color needs to be named in theme */
-	markup = g_strdup_printf(
-                   "<span weight='bold' foreground='#e3e3e3'>%s</span>", 
-		   str);
+        markup = g_strdup_printf("<b>%s</b>", str);
 
         gtk_label_set_markup (applet->label, markup);
 
-	g_free (markup);
+        g_free (markup);
 
         /* Keep going */
         return TRUE;

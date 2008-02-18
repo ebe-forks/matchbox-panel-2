@@ -1,3 +1,8 @@
+2008-02-18  Ross Burton  <ross@openedhand.com>
+
+	* applets/clock/clock.c:
+	Don't set a colour in the code, let the theme style it.
+
 2008-02-14  Ross Burton  <ross@openedhand.com>
 
 	* configure.ac:
