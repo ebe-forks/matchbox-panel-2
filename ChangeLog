@@ -1,3 +1,9 @@
+2008-02-19  Ross Burton  <ross@openedhand.com>
+
+	* applets/startup-notify/startup.c:
+	Use an icon name which actually exists, and extend the default
+	timeout.
+
 2008-02-18  Ross Burton  <ross@openedhand.com>
 
 	* applets/startup-notify/startup.c:

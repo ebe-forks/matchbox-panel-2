@@ -84,12 +84,12 @@ notify_send (StartupApplet *applet, const char *summary)
                            notify_done, applet, NULL,
                            G_TYPE_STRING, "matchbox-panel",
                            G_TYPE_UINT, applet->notify_id,
-                           G_TYPE_STRING, "application-x-generic",
+                           G_TYPE_STRING, "application-x-executable",
                            G_TYPE_STRING, summary,
                            G_TYPE_STRING, NULL, /* body */
                            G_TYPE_STRV, NULL, /* actions */
                            dbus_g_type_get_map("GHashTable", G_TYPE_STRING, G_TYPE_VALUE), g_hash_table_new (NULL, NULL), /* Hints */
-                           G_TYPE_INT, -1, /* timeout */
+                           G_TYPE_INT, 10 * 1000, /* timeout */
                            G_TYPE_INVALID);
 }
 
