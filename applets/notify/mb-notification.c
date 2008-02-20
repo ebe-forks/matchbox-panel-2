@@ -31,10 +31,28 @@ on_button_release (MbNotification *notification, GdkEventButton *event)
   }
 }
 
+static gint
+expose (GtkWidget *widget, GdkEventExpose *event)
+{
+  if (GTK_WIDGET_DRAWABLE (widget)) {
+    gtk_paint_box (widget->style, widget->window,
+                   widget->state, GTK_SHADOW_OUT,
+                   &event->area, widget, "notification",
+                   0, 0, -1, -1);
+    
+    (*GTK_WIDGET_CLASS (mb_notification_parent_class)->expose_event) (widget, event);
+  }
+  return FALSE;
+}
+
 static void
 mb_notification_class_init (MbNotificationClass *klass)
 {
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
   g_type_class_add_private (klass, sizeof (MbNotificationPrivate));
+
+  widget_class->expose_event = expose;
   
   signals[CLOSED] = g_signal_new ("closed",
                                   G_OBJECT_CLASS_TYPE (klass),
@@ -51,12 +69,12 @@ mb_notification_init (MbNotification *self)
   MbNotificationPrivate *priv = GET_PRIVATE (self);
   GtkWidget *box;
 
+  gtk_container_set_border_width (GTK_CONTAINER (self), 8);
   gtk_event_box_set_visible_window (GTK_EVENT_BOX (self), FALSE);
   gtk_widget_add_events (GTK_WIDGET (self), GDK_BUTTON_RELEASE_MASK);
   g_signal_connect (self, "button-release-event", G_CALLBACK (on_button_release), NULL);
   
   box = gtk_hbox_new (FALSE, 8);
-  gtk_container_set_border_width (GTK_CONTAINER (box), 8);
   gtk_container_add (GTK_CONTAINER (self), box);
 
   priv->image = gtk_image_new ();
