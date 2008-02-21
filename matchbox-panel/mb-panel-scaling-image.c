@@ -190,7 +190,7 @@ find_icon (GtkIconTheme *icon_theme,
            int           size)
 {
         GtkIconInfo *info;
-        char *new_icon, *stripped;
+        char *new_icon, *stripped, *prefixed;
 
         if (g_path_is_absolute (icon)) {
                 if (g_file_test (icon, G_FILE_TEST_EXISTS))
@@ -205,12 +205,22 @@ find_icon (GtkIconTheme *icon_theme,
         if (new_icon != icon)
                 g_free (new_icon);
 
+        prefixed = g_strconcat ("panel-", stripped, NULL);
+
         info = gtk_icon_theme_lookup_icon (icon_theme, 
-                                           stripped,
+                                           prefixed,
                                            size,
                                            0);
+
+        if (info == NULL) {
+          info = gtk_icon_theme_lookup_icon (icon_theme, 
+                                             stripped,
+                                             size,
+                                             0);
+        }
         
         g_free (stripped);
+        g_free (prefixed);
 
         if (info) {
                 char *file;

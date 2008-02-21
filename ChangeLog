@@ -1,3 +1,9 @@
+2008-02-21  Ross Burton  <ross@openedhand.com>
+
+	* matchbox-panel/mb-panel-scaling-image.c:
+	Attempt to lookup an icon called panel-[name] before [name], so it
+	can be themed.
+
 2008-02-20  Ross Burton  <ross@openedhand.com>
 
 	* applets/notify/mb-notification.c:
