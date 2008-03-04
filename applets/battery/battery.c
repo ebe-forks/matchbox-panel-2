@@ -6,8 +6,8 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <apm.h>
 #include <string.h>
+#include <apm.h>
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 

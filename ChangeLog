@@ -1,3 +1,8 @@
+2008-03-04  Marcin Juszkiewicz  <hrw@openedhand.com>
+
+	* applets/battery/battery.c:
+	Re-order includes to get it built with 2.6.24 linux-libc-headers.
+
 2008-02-21  Ross Burton  <ross@openedhand.com>
 
 	* matchbox-panel/mb-panel-scaling-image.c:
