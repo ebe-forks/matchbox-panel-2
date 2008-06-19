@@ -50,7 +50,7 @@ set_active (ShowDesktopApplet *applet, gboolean active)
 
         /* TODO: remove this function and instead use a toggle button? */
         
-        icon = "user-desktop";
+        icon = "panel-user-desktop";
 
         mb_panel_scaling_image_set_icon (applet->image, icon);
 }

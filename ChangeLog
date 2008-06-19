@@ -1,3 +1,9 @@
+2008-06-19  Ross Burton  <ross@openedhand.com>
+
+	* applets/windowselector/windowselector.c:
+	* applets/showdesktop/showdesktop.c:
+	Use panel- prefixed icon names.
+
 2008-03-04  Marcin Juszkiewicz  <hrw@openedhand.com>
 
 	* applets/battery/battery.c:

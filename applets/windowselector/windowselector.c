@@ -797,7 +797,7 @@ mb_panel_applet_create (const char    *id,
         switch (applet->mode) {
         case MODE_STATIC_ICON:
                 applet->image = mb_panel_scaling_image_new (orientation,
-                        "task-switcher");
+                        "panel-task-switcher");
                 gtk_container_add (GTK_CONTAINER (applet->button),
                                 applet->image);
                 break;
