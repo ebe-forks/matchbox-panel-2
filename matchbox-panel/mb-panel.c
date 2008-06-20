@@ -45,22 +45,14 @@ load_applet (const char    *name,
         if (!applet_path)
                 applet_path = DEFAULT_APPLET_PATH;
         
-        /* See if we can find a module with this name */
+        /* Create the path to the applet */
         path = g_module_build_path (applet_path, name);
-        if (!g_file_test (path, G_FILE_TEST_EXISTS)) {
-                /* No */
-                g_warning ("Failed to find applet \"%s\"", name);
 
-                g_free (path);
-
-                return NULL;
-        }
-
-        /* Yes: Open it */
-        module = g_module_open (path, G_MODULE_BIND_LOCAL);
+        /* Try and open it */
+        module = g_module_open (path, G_MODULE_BIND_LOCAL | G_MODULE_BIND_LAZY);
         if (!module) {
                 g_warning ("Failed to load applet \"%s\" (%s).",
-                           name, g_module_error());
+                           name, g_module_error ());
 
                 g_free (path);
 

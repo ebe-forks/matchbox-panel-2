@@ -1,3 +1,9 @@
+2008-06-20  Ross Burton  <ross@openedhand.com>
+
+	* matchbox-panel/mb-panel.c:
+	Don't stat the plugin before opening it, as open will stat it
+	again.  Also lazy-load symbols for performance.
+
 2008-06-19  Ross Burton  <ross@openedhand.com>
 
 	* applets/windowselector/windowselector.c:
