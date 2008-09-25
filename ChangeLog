@@ -1,3 +1,8 @@
+2008-09-25  Ross Burton  <ross@linux.intel.com>
+
+	* matchbox-panel/mb-panel.c:
+	By default make the panel fill the width of the screen.
+
 2008-06-20  Ross Burton  <ross@openedhand.com>
 
 	* matchbox-panel/mb-panel.c:

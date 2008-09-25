@@ -128,6 +128,7 @@ main (int argc, char **argv)
         GError *error;
         char *geometry = NULL, *start_applets = NULL, *end_applets = NULL;
         GtkWidget *window, *box, *frame;
+        GdkScreen *screen;
         int panel_width, panel_height;
         GtkOrientation orientation;
         gboolean want_titlebar = FALSE;
@@ -193,8 +194,9 @@ main (int argc, char **argv)
         gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
 
         /* Set default panel height */
+        screen = gtk_window_get_screen (GTK_WINDOW (window));
         gtk_window_set_default_size (GTK_WINDOW (window),
-                                     -1,
+                                     gdk_screen_get_width (screen),
                                      DEFAULT_HEIGHT);
 
         /* Parse geometry string */
