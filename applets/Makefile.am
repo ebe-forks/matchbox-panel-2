@@ -1,6 +1,6 @@
 SUBDIRS = brightness clock launcher notify systray showdesktop windowselector
 
-if HAVE_LIBAPM
+if HAVE_BATTERY
   SUBDIRS += battery
 endif
 

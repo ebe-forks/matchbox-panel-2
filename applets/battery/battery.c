@@ -6,10 +6,7 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <string.h>
-#include <apm.h>
-#include <matchbox-panel/mb-panel.h>
-#include <matchbox-panel/mb-panel-scaling-image.h>
+#include "battery.h"
 
 typedef struct {
         MBPanelScalingImage *image;
@@ -31,43 +28,12 @@ battery_applet_free (BatteryApplet *applet)
 static gboolean
 timeout (BatteryApplet *applet)
 {
-        apm_info info;
-        const char *icon;
+	const char *icon;
 
-        memset (&info, 0, sizeof (apm_info));
-        apm_read (&info);
+	icon = pm_battery_icon();
 
-        if (info.battery_status == BATTERY_STATUS_ABSENT)
-                icon = "ac-adapter.png";
-        else {
-                if (info.ac_line_status == AC_LINE_STATUS_ON) {
-                        if (info.battery_percentage < 10)
-                                icon = "battery-charging-000.png";
-                        else if (info.battery_percentage < 30)
-                                icon = "battery-charging-020.png";
-                        else if (info.battery_percentage < 50)
-                                icon = "battery-charging-040.png";
-                        else if (info.battery_percentage < 70)
-                                icon = "battery-charging-060.png";
-                        else if (info.battery_percentage < 90)
-                                icon = "battery-charging-080.png";
-                        else
-                                icon = "battery-charging-100.png";
-                } else {
-                        if (info.battery_percentage < 10)
-                                icon = "battery-discharging-000.png";
-                        else if (info.battery_percentage < 30)
-                                icon = "battery-discharging-020.png";
-                        else if (info.battery_percentage < 50)
-                                icon = "battery-discharging-040.png";
-                        else if (info.battery_percentage < 70)
-                                icon = "battery-discharging-060.png";
-                        else if (info.battery_percentage < 90)
-                                icon = "battery-discharging-080.png";
-                        else
-                                icon = "battery-discharging-100.png";
-                }
-        }
+	if (!icon)
+		return FALSE;
 
         /* Don't recreate pixbuf if we will display the same image */
         if (icon == applet->last_icon)
@@ -89,12 +55,9 @@ mb_panel_applet_create (const char    *id,
         BatteryApplet *applet;
         GtkWidget *image;
 
-        /* Check that we have APM support */
-        if (1 == apm_exists ()) {
-                g_warning ("No APM support");
-
+        /* Check that we have PM support */
+        if (!pm_support())
                 return NULL;
-        }
 
         /* Create applet data structure */
         applet = g_slice_new (BatteryApplet);

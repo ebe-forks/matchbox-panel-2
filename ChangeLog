@@ -1,3 +1,13 @@
+2008-09-30  Samuel Ortiz  <sameo@linux.intel.com>
+	* configure.ac
+	* applets/Makefile.am
+	* applets/battery/battery.h
+	* applets/battery/battery-acpi.c
+	* applets/battery/battery-apm.c
+	* applets/battery/Makefile.am
+	* applets/battery/battery.c
+	Switch between ACPI and APM at configuration time. Default is APM.
+
 2008-09-25  Ross Burton  <ross@linux.intel.com>
 
 	* matchbox-panel/mb-panel.c:

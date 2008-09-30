@@ -43,10 +43,29 @@ if test x$enable_dbus != xno; then
 fi
 AM_CONDITIONAL(HAVE_DBUS, test x$enable_dbus = xyes)
 
-# apm
-AC_CHECK_HEADERS(apm.h, enable_linux_apm=yes, enable_linux_apm=no)
-AM_CONDITIONAL(HAVE_LIBAPM, test x$enable_linux_apm = xyes)
+# Where to read battery state from
+AC_ARG_WITH(
+	[battery],
+	AS_HELP_STRING([--with-battery], [where to read the battery state from]),
+	[],
+	[with_battery="apm"]
+)
 
+case "$with_battery" in
+     "acpi") AC_CHECK_HEADERS(libacpi.h, enable_linux_acpi=yes, AC_MSG_FAILURE([You need to install libacpi]))
+     enable_battery=yes
+     ;;
+     ""|"apm") AC_CHECK_HEADERS(apm.h, enable_linux_apm=yes, AC_MSG_FAILURE([You need to install apmd]))
+     enable_battery=yes
+     ;;
+     "none"|*) enable_battery=no
+     ;;
+
+esac
+
+AM_CONDITIONAL(HAVE_BATTERY, test x$enable_battery = xyes)
+AM_CONDITIONAL(HAVE_LIBAPM, test x$enable_linux_apm = xyes)
+AM_CONDITIONAL(HAVE_LIBACPI, test x$enable_linux_acpi = xyes)
 
 # glib-genmarshal
 GLIB_GENMARSHAL=`$PKG_CONFIG --variable=glib_genmarshal glib-2.0`  
