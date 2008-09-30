@@ -242,6 +242,8 @@ main (int argc, char **argv)
         gtk_container_add (GTK_CONTAINER (frame), box);
         gtk_widget_show (box);
 
+        gtk_widget_realize (window);
+        
         /* Do we want to display the panel in the Matchbox titlebar? */
         if (want_titlebar) {
                 const char *names[] = {
@@ -256,13 +258,24 @@ main (int argc, char **argv)
                 XInternAtoms (GDK_DISPLAY (), (char**)names,
                               G_N_ELEMENTS (names), False, atoms);
 
-                gtk_widget_realize (window);
-
                 XChangeProperty (GDK_DISPLAY (), 
                                  GDK_WINDOW_XID (window->window), 
                                  atoms[0], XA_ATOM, 32,
                                  PropModeReplace,
                                  (unsigned char *) &atoms[1], 2);
+        } else {
+                /* If we're not in a title bar, set the struts */
+                Atom net_wm_strut;
+                gulong struts [4] = { 0, 0, panel_height, 0 };
+
+                gdk_error_trap_push ();
+                net_wm_strut = XInternAtom (GDK_DISPLAY () , "_NET_WM_STRUT", False);
+                XChangeProperty (GDK_DISPLAY (),
+                                 GDK_WINDOW_XID (window->window),
+                                 net_wm_strut, XA_CARDINAL, 32,
+                                 PropModeReplace,
+                                 (guchar *) &struts, 4);
+                gdk_error_trap_pop ();
         }
 
         /* Load applets */
