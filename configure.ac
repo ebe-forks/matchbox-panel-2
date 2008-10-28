@@ -48,7 +48,7 @@ AC_ARG_WITH(
 	[battery],
 	AS_HELP_STRING([--with-battery], [where to read the battery state from]),
 	[],
-	[with_battery="apm"]
+	[with_battery="none"]
 )
 
 case "$with_battery" in

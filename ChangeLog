@@ -1,3 +1,9 @@
+2008-10-28  Rob Bradford  <rob@linux.intel.com>
+
+	* configure.ac:
+	If no --with-battery supplied then default to no battery rather than
+	using APM. This fixes builds on platforms not supporting APM.
+
 2008-09-30  Ross Burton  <ross@linux.intel.com>
 
 	* matchbox-panel/mb-panel.c:
