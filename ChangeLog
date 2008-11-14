@@ -1,3 +1,13 @@
+2008-11-14  Ross Burton  <ross@linux.intel.com>
+
+	* configure.ac:
+	Remove ALL_LINGUAS
+
+	* po/LINGUAS:
+	Add.
+
+	This makes the dist work.
+
 2008-10-28  Rob Bradford  <rob@linux.intel.com>
 
 	* configure.ac:
