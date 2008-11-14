@@ -1,5 +1,10 @@
 2008-11-14  Ross Burton  <ross@linux.intel.com>
 
+	* applets/brightness/data/Makefile.am:
+	Dist the images.
+
+2008-11-14  Ross Burton  <ross@linux.intel.com>
+
 	* configure.ac:
 	Remove ALL_LINGUAS
 
