@@ -1,5 +1,11 @@
 2009-05-07  Ross Burton  <ross@linux.intel.com>
 
+	* applets/brightness/brightness.c:
+	Don't ignore fscanf return value.
+	(thanks Jackson Yee <jackson.yee@gmail.com>)
+
+2009-05-07  Ross Burton  <ross@linux.intel.com>
+
 	* matchbox-panel/mb-panel-scaling-image.c:
 	Fix bad format string
 	(thanks Jackson Yee <jackson.yee@gmail.com>)

@@ -27,7 +27,7 @@ static gint32 sysfs_value_get(const gchar *path)
                 return -1;
         }
         gint32 value;
-        fscanf(fd, "%d", &value);
+        (void)fscanf(fd, "%d", &value);
         fclose(fd);
         return value;
 }
