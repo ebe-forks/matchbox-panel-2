@@ -289,7 +289,7 @@ reload_icon (MBPanelScalingImage *image, gboolean force)
                 } else
                         g_object_unref (pixbuf);
         } else {
-                g_warning (error->message);
+                g_warning ("No pixbuf found: %s", error->message);
 
                 g_error_free (error);
         }
