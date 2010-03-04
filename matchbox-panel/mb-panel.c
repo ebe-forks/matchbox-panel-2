@@ -120,6 +120,60 @@ load_applets (const char    *applets_desc,
         g_strfreev (applets);
 }
 
+static void
+set_struts (GtkWidget *window)
+{
+        static Atom net_wm_strut_partial = None;
+
+        guint32    struts [12];
+        gint       x, y, w, h;
+        gint       screen_width, screen_height;
+        GdkScreen *screen;
+
+        screen = gdk_screen_get_default ();
+
+        gtk_window_get_position (GTK_WINDOW (window), &x, &y);
+        gtk_window_get_size (GTK_WINDOW (window), &w, &h);
+
+        screen_width  = gdk_screen_get_width (screen);
+        screen_height = gdk_screen_get_height (screen);
+
+        /* left */
+        struts[0] = x == 0 ? w : 0;
+        struts[4] = struts[0] ? y : 0;
+        struts[5] = struts[0] ? y + h : 0;
+
+        /* right */
+        struts[1] = x + w == screen_width ? w : 0;
+        struts[6] = struts[1] ? y : 0;
+        struts[7] = struts[1] ? y + h : 0;
+
+        /* top */
+        struts[2] = y == 0 ? h : 0;
+        struts[8] = struts[2] ? x : 0;
+        struts[9] = struts[2] ? x + w : 0;
+
+        /* bottom */
+        struts[3] = y + h == screen_height ? h : 0;
+        struts[10] = struts[3] ? x : 0;
+        struts[11] = struts[3] ? x + w : 0;
+
+        gdk_error_trap_push ();
+
+        if (!net_wm_strut_partial)
+                net_wm_strut_partial = XInternAtom (GDK_DISPLAY () ,
+                                                    "_NET_WM_STRUT_PARTIAL",
+                                                    False);
+
+        XChangeProperty (GDK_DISPLAY (),
+                         GDK_WINDOW_XID (window->window),
+                         net_wm_strut_partial, XA_CARDINAL, 32,
+                         PropModeReplace,
+                         (guchar *) &struts, 12);
+
+        gdk_error_trap_pop ();
+}
+
 int
 main (int argc, char **argv)
 {
@@ -254,28 +308,18 @@ main (int argc, char **argv)
                         "_MB_DOCK_TITLEBAR_SHOW_ON_DESKTOP"
                 };
                 Atom atoms[G_N_ELEMENTS (names)];
-                
+
                 XInternAtoms (GDK_DISPLAY (), (char**)names,
                               G_N_ELEMENTS (names), False, atoms);
 
-                XChangeProperty (GDK_DISPLAY (), 
-                                 GDK_WINDOW_XID (window->window), 
+                XChangeProperty (GDK_DISPLAY (),
+                                 GDK_WINDOW_XID (window->window),
                                  atoms[0], XA_ATOM, 32,
                                  PropModeReplace,
                                  (unsigned char *) &atoms[1], 2);
         } else {
                 /* If we're not in a title bar, set the struts */
-                Atom net_wm_strut;
-                gulong struts [4] = { 0, 0, panel_height, 0 };
-
-                gdk_error_trap_push ();
-                net_wm_strut = XInternAtom (GDK_DISPLAY () , "_NET_WM_STRUT", False);
-                XChangeProperty (GDK_DISPLAY (),
-                                 GDK_WINDOW_XID (window->window),
-                                 net_wm_strut, XA_CARDINAL, 32,
-                                 PropModeReplace,
-                                 (guchar *) &struts, 4);
-                gdk_error_trap_pop ();
+                set_struts (window);
         }
 
         /* Load applets */
