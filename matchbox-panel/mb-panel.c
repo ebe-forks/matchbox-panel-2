@@ -1,6 +1,6 @@
 /* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
 
-/* 
+/*
  * (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
@@ -44,7 +44,7 @@ load_applet (const char    *name,
         applet_path = g_getenv ("MATCHBOX_PANEL_APPLET_PATH");
         if (!applet_path)
                 applet_path = DEFAULT_APPLET_PATH;
-        
+
         /* Create the path to the applet */
         path = g_module_build_path (applet_path, name);
 
@@ -240,7 +240,7 @@ main (int argc, char **argv)
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
         gtk_widget_set_name (window, "MatchboxPanel");
-        
+
         gtk_window_set_type_hint (GTK_WINDOW (window),
                                   GDK_WINDOW_TYPE_HINT_DOCK);
 
@@ -283,7 +283,7 @@ main (int argc, char **argv)
                 orientation = GTK_ORIENTATION_HORIZONTAL;
 
                 gtk_widget_set_name (frame, "MatchboxPanelFrameHorizontal");
-                
+
                 box = gtk_hbox_new (FALSE, 0);
         } else {
                 orientation = GTK_ORIENTATION_VERTICAL;
@@ -297,7 +297,7 @@ main (int argc, char **argv)
         gtk_widget_show (box);
 
         gtk_widget_realize (window);
-        
+
         /* Do we want to display the panel in the Matchbox titlebar? */
         if (want_titlebar) {
                 const char *names[] = {
@@ -345,6 +345,6 @@ main (int argc, char **argv)
                 open_modules = g_list_delete_link (open_modules,
                                                    open_modules);
         }
-        
+
         return 0;
 }
