@@ -28,6 +28,10 @@
 
 static GList *open_modules = NULL; /* List of open modules */
 
+/* Extra width and height to reserve for panel struts (see --reserve-extra) */
+static gint extra_width  = 0;
+static gint extra_height = 0;
+
 /* Load applet @name with ID @id */
 static GtkWidget *
 load_applet (const char    *name,
@@ -139,22 +143,22 @@ set_struts (GtkWidget *window)
         screen_height = gdk_screen_get_height (screen);
 
         /* left */
-        struts[0] = x == 0 ? w : 0;
+        struts[0] = x == 0 ? w + extra_width : 0;
         struts[4] = struts[0] ? y : 0;
         struts[5] = struts[0] ? y + h : 0;
 
         /* right */
-        struts[1] = x + w == screen_width ? w : 0;
+        struts[1] = x + w == screen_width ? w + extra_width: 0;
         struts[6] = struts[1] ? y : 0;
         struts[7] = struts[1] ? y + h : 0;
 
         /* top */
-        struts[2] = y == 0 ? h : 0;
+        struts[2] = y == 0 ? h + extra_height: 0;
         struts[8] = struts[2] ? x : 0;
         struts[9] = struts[2] ? x + w : 0;
 
         /* bottom */
-        struts[3] = y + h == screen_height ? h : 0;
+        struts[3] = y + h == screen_height ? h + extra_height : 0;
         struts[10] = struts[3] ? x : 0;
         struts[11] = struts[3] ? x + w : 0;
 
@@ -197,6 +201,14 @@ main (int argc, char **argv)
                 { "titlebar", 0, 0, G_OPTION_ARG_NONE, &want_titlebar,
                   N_("Display in window titlebar (If Matchbox theme supports)"),
                   NULL },
+                { "reserve-extra-width", 0, 0, G_OPTION_ARG_INT, &extra_width,
+                  N_("Extra width to reserve in panel strut in addittion to "
+                     "the window width"),
+                  N_("pixels")},
+                { "reserve-extra-height", 0, 0, G_OPTION_ARG_INT, &extra_height,
+                  N_("Extra height to reserve in panel strut in addition to "
+                     "the window height"),
+                  N_("pixels")},
                 { NULL }
         };
 
