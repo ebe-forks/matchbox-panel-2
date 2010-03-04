@@ -35,6 +35,9 @@ static gint extra_height = 0;
 static gboolean snap_right = FALSE;
 static gboolean snap_bottom = FALSE;
 
+static gboolean center_vertical   = FALSE;
+static gboolean center_horizontal = FALSE;
+
 /* Load applet @name with ID @id */
 static GtkWidget *
 load_applet (const char    *name,
@@ -196,7 +199,13 @@ screen_size_changed_cb (GdkScreen *screen, GtkWidget *window)
         if (snap_bottom)
                 y = screen_height - h;
 
-        if (snap_right || snap_bottom)
+        if (center_horizontal)
+                x = (screen_width - w) / 2;
+
+        if (center_vertical)
+                y = (screen_height - h)/ 2;
+
+        if (snap_right || snap_bottom || center_horizontal || center_vertical)
                 gtk_window_move (GTK_WINDOW (window), x, y);
 
         set_struts (window, x, y, w, h);
@@ -233,6 +242,14 @@ main (int argc, char **argv)
                   N_("Extra height to reserve in panel strut in addition to "
                      "the window height"),
                   N_("pixels")},
+                { "center-horizontally", 0, 0, G_OPTION_ARG_NONE,
+                  &center_horizontal,
+                  N_("Center panel horizontally"),
+                  NULL },
+                { "center-vertically", 0, 0, G_OPTION_ARG_NONE,
+                  &center_vertical,
+                  N_("Center panel vertically"),
+                  NULL },
                 { NULL }
         };
 
@@ -362,6 +379,17 @@ main (int argc, char **argv)
 
                 gtk_window_get_position (GTK_WINDOW (window), &x, &y);
                 gtk_window_get_size (GTK_WINDOW (window), &w, &h);
+
+                if (center_horizontal || center_vertical)
+                        {
+                                if (center_horizontal)
+                                        x = (screen_width - w) / 2;
+                                if (center_vertical)
+                                        y = (screen_height - h)/ 2;
+
+                                gtk_window_move (GTK_WINDOW (window), x, y);
+                        }
+
 
                 if (x + w == screen_width)
                         snap_right = TRUE;
