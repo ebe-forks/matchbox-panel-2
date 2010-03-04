@@ -32,6 +32,9 @@ static GList *open_modules = NULL; /* List of open modules */
 static gint extra_width  = 0;
 static gint extra_height = 0;
 
+static gboolean snap_right = FALSE;
+static gboolean snap_bottom = FALSE;
+
 /* Load applet @name with ID @id */
 static GtkWidget *
 load_applet (const char    *name,
@@ -124,20 +127,17 @@ load_applets (const char    *applets_desc,
         g_strfreev (applets);
 }
 
+/* Set struts based on the window size and position */
 static void
-set_struts (GtkWidget *window)
+set_struts (GtkWidget *window, gint x, gint y, gint w, gint h)
 {
         static Atom net_wm_strut_partial = None;
 
         guint32    struts [12];
-        gint       x, y, w, h;
         gint       screen_width, screen_height;
         GdkScreen *screen;
 
         screen = gdk_screen_get_default ();
-
-        gtk_window_get_position (GTK_WINDOW (window), &x, &y);
-        gtk_window_get_size (GTK_WINDOW (window), &w, &h);
 
         screen_width  = gdk_screen_get_width (screen);
         screen_height = gdk_screen_get_height (screen);
@@ -176,6 +176,30 @@ set_struts (GtkWidget *window)
                          (guchar *) &struts, 12);
 
         gdk_error_trap_pop ();
+}
+
+static void
+screen_size_changed_cb (GdkScreen *screen, GtkWidget *window)
+{
+        gint       x, y, w, h;
+        gint       screen_width, screen_height;
+
+        gtk_window_get_position (GTK_WINDOW (window), &x, &y);
+        gtk_window_get_size (GTK_WINDOW (window), &w, &h);
+
+        screen_width  = gdk_screen_get_width (screen);
+        screen_height = gdk_screen_get_height (screen);
+
+        if (snap_right)
+                x = screen_width - w;
+
+        if (snap_bottom)
+                y = screen_height - h;
+
+        if (snap_right || snap_bottom)
+                gtk_window_move (GTK_WINDOW (window), x, y);
+
+        set_struts (window, x, y, w, h);
 }
 
 int
@@ -331,7 +355,24 @@ main (int argc, char **argv)
                                  (unsigned char *) &atoms[1], 2);
         } else {
                 /* If we're not in a title bar, set the struts */
-                set_struts (window);
+                GdkScreen *screen        = gdk_screen_get_default ();
+                gint       screen_width  = gdk_screen_get_width (screen);
+                gint       screen_height = gdk_screen_get_height (screen);
+                gint       x, y, w, h;
+
+                gtk_window_get_position (GTK_WINDOW (window), &x, &y);
+                gtk_window_get_size (GTK_WINDOW (window), &w, &h);
+
+                if (x + w == screen_width)
+                        snap_right = TRUE;
+
+                if (y + h == screen_height)
+                        snap_bottom = TRUE;
+
+                set_struts (window, x, y, w, h);
+                g_signal_connect (screen, "size-changed",
+                                  G_CALLBACK (screen_size_changed_cb),
+                                  window);
         }
 
         /* Load applets */
