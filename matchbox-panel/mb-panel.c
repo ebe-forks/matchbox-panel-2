@@ -38,6 +38,8 @@ static gboolean snap_bottom = FALSE;
 static gboolean center_vertical   = FALSE;
 static gboolean center_horizontal = FALSE;
 
+static gboolean fullscreen = FALSE;
+
 /* Load applet @name with ID @id */
 static GtkWidget *
 load_applet (const char    *name,
@@ -205,8 +207,28 @@ screen_size_changed_cb (GdkScreen *screen, GtkWidget *window)
         if (center_vertical)
                 y = (screen_height - h)/ 2;
 
-        if (snap_right || snap_bottom || center_horizontal || center_vertical)
-                gtk_window_move (GTK_WINDOW (window), x, y);
+        if (fullscreen)
+                {
+                        if (w > h)
+                                {
+                                        w = screen_width;
+                                        x = 0;
+                                }
+                        else
+                                {
+                                        h = screen_height;
+                                        y = 0;
+                                }
+
+                        gtk_window_move (GTK_WINDOW (window), x, y);
+                        gtk_widget_set_size_request (window, w, h);
+                        gtk_window_resize (GTK_WINDOW (window), w, h);
+                }
+        else if (snap_right || snap_bottom ||
+                 center_horizontal || center_vertical)
+                {
+                        gtk_window_move (GTK_WINDOW (window), x, y);
+                }
 
         set_struts (window, x, y, w, h);
 }
@@ -249,6 +271,14 @@ main (int argc, char **argv)
                 { "center-vertically", 0, 0, G_OPTION_ARG_NONE,
                   &center_vertical,
                   N_("Center panel vertically"),
+                  NULL },
+                { "fullscreen", 0, 0, G_OPTION_ARG_NONE,
+                  &fullscreen,
+                  N_("Stretch panel to fullscreen in dominant direction "
+                     "(if used together with the --geometry options "
+                     "while the offset in the dominant direction will be "
+                     "ignored, it must not be specified with the + prefix, "
+                     "e.g., --geometry=200x32+0-0"),
                   NULL },
                 { NULL }
         };
@@ -372,23 +402,38 @@ main (int argc, char **argv)
                                  (unsigned char *) &atoms[1], 2);
         } else {
                 /* If we're not in a title bar, set the struts */
-                GdkScreen *screen        = gdk_screen_get_default ();
-                gint       screen_width  = gdk_screen_get_width (screen);
-                gint       screen_height = gdk_screen_get_height (screen);
-                gint       x, y, w, h;
+                gint screen_width  = gdk_screen_get_width (screen);
+                gint screen_height = gdk_screen_get_height (screen);
+                gint x, y, w, h;
 
                 gtk_window_get_position (GTK_WINDOW (window), &x, &y);
                 gtk_window_get_size (GTK_WINDOW (window), &w, &h);
 
-                if (center_horizontal || center_vertical)
+                if (fullscreen)
                         {
-                                if (center_horizontal)
-                                        x = (screen_width - w) / 2;
-                                if (center_vertical)
-                                        y = (screen_height - h)/ 2;
+                                if (w > h)
+                                        {
+                                                w = screen_width;
+                                                x = 0;
+                                        }
+                                else
+                                        {
+                                                h = screen_height;
+                                                y = 0;
+                                        }
 
-                                gtk_window_move (GTK_WINDOW (window), x, y);
+                                gtk_widget_set_size_request (window, w, h);
+                                gtk_window_resize (GTK_WINDOW (window), w, h);
                         }
+
+                if (center_horizontal)
+                        x = (screen_width - w) / 2;
+
+                if (center_vertical)
+                        y = (screen_height - h)/ 2;
+
+                if (center_horizontal || center_vertical || fullscreen)
+                        gtk_window_move (GTK_WINDOW (window), x, y);
 
 
                 if (x + w == screen_width)
