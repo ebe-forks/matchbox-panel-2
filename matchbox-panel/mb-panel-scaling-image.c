@@ -284,7 +284,7 @@ reload_icon (MBPanelScalingImage *image, gboolean force)
 
                 if (image->priv->caching) {
                         g_hash_table_insert (image->priv->cache,
-                                             image->priv->icon,
+                                             g_strdup (image->priv->icon),
                                              pixbuf);
                 } else
                         g_object_unref (pixbuf);
