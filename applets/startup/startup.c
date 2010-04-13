@@ -225,9 +225,10 @@ mb_panel_applet_create (const char    *id,
         SnMonitorContext *context;
 
         /* Create applet data structure */
-        applet = g_slice_new (StartupApplet);
+        applet = g_slice_new0 (StartupApplet);
 
         applet->launch_list = NULL;
+        applet->hourglass_show = FALSE;
 
         /* Create image */
         applet->image = MB_PANEL_SCALING_IMAGE
