@@ -170,16 +170,17 @@ timeout (StartupApplet *applet)
 
         /* handle launchee timeouts */
         while (tmp != NULL) {
+                GList *tmp_next = tmp->next;
                 LaunchItem *item = (LaunchItem *) tmp->data;
                 if ((item->when - t) <= 0) {
-                        applet->launch_list = g_list_remove (tmp, item);
+                        applet->launch_list = g_list_delete_link (applet->launch_list, tmp);
                         g_source_remove (item->timeout_id);
                         free (item->id);
                         free (item);
 
                         break;
                 }
-                tmp = tmp->next;
+                tmp = tmp_next;
         }
 
         if (applet->launch_list == NULL && applet->hourglass_shown) {
