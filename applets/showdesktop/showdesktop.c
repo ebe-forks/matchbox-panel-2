@@ -57,7 +57,7 @@ set_active (ShowDesktopApplet *applet, gboolean active)
 
 /* Sync @applet with the _NET_SHOWING_DESKTOP root window property */
 static void
-sync (ShowDesktopApplet *applet)
+sync_applet (ShowDesktopApplet *applet)
 {
         GdkDisplay *display;
         Atom type;
@@ -103,7 +103,7 @@ filter_func (GdkXEvent         *xevent,
         if (xev->type == PropertyNotify) {
                 if (xev->xproperty.atom == applet->atom) {
                         /* _NET_SHOWING_DESKTOP changed */
-                        sync (applet);
+                        sync_applet (applet);
                 }
         }
 
@@ -145,7 +145,7 @@ screen_changed_cb (GtkWidget         *button,
                                applet);
 
         /* Sync */
-        sync (applet);
+        sync_applet (applet);
 }
 
 /* Button clicked */
