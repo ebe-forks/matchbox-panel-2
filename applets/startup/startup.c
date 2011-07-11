@@ -229,7 +229,7 @@ mb_panel_applet_create (const char    *id,
         applet = g_slice_new0 (StartupApplet);
 
         applet->launch_list = NULL;
-        applet->hourglass_show = FALSE;
+        applet->hourglass_shown = FALSE;
 
         /* Create image */
         applet->image = MB_PANEL_SCALING_IMAGE
