@@ -1,8 +1,9 @@
-AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
-	-DGETTEXT_PACKAGE=\"matchbox-panel\"
-AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
-	-I$(top_srcdir) -I$(top_builddir) -Werror \
-	$(SN_CFLAGS) $(DBUS_CFLAGS)
+AM_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
+              -DGETTEXT_PACKAGE=\"matchbox-panel\" \
+              $(MATCHBOX_PANEL_CFLAGS) \
+              $(DBUS_CFLAGS) $(SN_CFLAGS) \
+              -I$(top_srcdir) -I$(top_builddir)
+AM_CFLAGS = $(WARN_CFLAGS)
 
 appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libstartup-notify.la

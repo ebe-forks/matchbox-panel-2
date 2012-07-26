@@ -1,8 +1,9 @@
 AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
             -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-	    -DDEFAULT_APPLET_PATH=\"$(pkglibdir)\"
-AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
-	    -I$(top_srcdir) -I$(top_builddir) -Werror
+	    -DDEFAULT_APPLET_PATH=\"$(pkglibdir)\" \
+            $(MATCHBOX_PANEL_CFLAGS) \
+	    -I$(top_srcdir) -I$(top_builddir)
+AM_CFLAGS = $(WARN_CFLAGS)
 
 matchbox_panelincdir = $(pkgincludedir)
 

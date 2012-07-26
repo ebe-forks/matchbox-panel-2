@@ -1,11 +1,11 @@
 SUBDIRS = data
 
-AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
-            -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-	    -DDATADIR=\"$(pkgdatadir)/startup/\"
-AM_CFLAGS = -Wall -g $(MATCHBOX_PANEL_CFLAGS) \
-	    -I$(top_srcdir) -I$(top_builddir) -Werror \
-		$(SN_CFLAGS)
+AM_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
+              -DGETTEXT_PACKAGE=\"matchbox-panel\" \
+              -DDATADIR=\"$(pkgdatadir)/startup/\" \
+              $(MATCHBOX_PANEL_CFLAGS) $(SN_CFLAGS) \
+              -I$(top_srcdir) -I$(top_builddir)
+AM_CFLAGS = $(WARN_CFLAGS)
 
 appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libstartup.la
