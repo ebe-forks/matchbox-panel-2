@@ -50,6 +50,7 @@ typedef struct {
         MBPanelScalingImage *image;
         GdkWindow *root_window;
         SnDisplay *sn_display;
+        SnMonitorContext *sn_context;
         GList *launch_list;
         gboolean hourglass_shown;
         int hourglass_cur_frame_n;
@@ -210,9 +211,8 @@ filter_func (GdkXEvent     *gdk_xevent,
 {
         XEvent *xevent;
         xevent = (XEvent *) gdk_xevent;
-        gboolean ret;
 
-        ret = sn_display_process_event (applet->sn_display, xevent);
+        sn_display_process_event (applet->sn_display, xevent);
 
         return GDK_FILTER_CONTINUE;
 }
@@ -223,7 +223,6 @@ mb_panel_applet_create (const char    *id,
 {
         StartupApplet *applet;
         Display *xdisplay;
-        SnMonitorContext *context;
 
         /* Create applet data structure */
         applet = g_slice_new0 (StartupApplet);
@@ -248,11 +247,11 @@ mb_panel_applet_create (const char    *id,
 
         applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
 
-        context = sn_monitor_context_new (applet->sn_display,
-                                          DefaultScreen(xdisplay),
-                                          monitor_event_func,
-                                          (void *) applet,
-                                          NULL);
+        applet->sn_context = sn_monitor_context_new (applet->sn_display,
+                                                     DefaultScreen(xdisplay),
+                                                     monitor_event_func,
+                                                     (void *) applet,
+                                                     NULL);
 
         /* We have to select for property events on at least one
          * root window (but not all as INITIATE messages go to
