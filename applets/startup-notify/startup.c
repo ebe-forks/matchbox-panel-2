@@ -50,6 +50,7 @@ typedef struct LaunchItem {
 typedef struct {
   GdkWindow *root_window;
   SnDisplay *sn_display;
+  SnMonitorContext *sn_context;
   GList *launch_list;
   DBusGProxy *proxy;
   guint notify_id;
@@ -305,7 +306,6 @@ mb_panel_applet_create (const char *id, GtkOrientation orientation)
   StartupApplet *applet;
   GtkWidget *widget;
   Display *xdisplay;
-  SnMonitorContext *context;
   
   applet = g_slice_new0 (StartupApplet);
 
@@ -317,11 +317,11 @@ mb_panel_applet_create (const char *id, GtkOrientation orientation)
     
     applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
     
-    context = sn_monitor_context_new (applet->sn_display,
-                                      DefaultScreen (xdisplay),
-                                      monitor_event_func,
-                                      applet, NULL);
-    
+    applet->sn_context = sn_monitor_context_new (applet->sn_display,
+                                                 DefaultScreen (xdisplay),
+                                                 monitor_event_func,
+                                                 applet, NULL);
+
     /* We have to select for property events on at least one root window (but not
      * all as INITIATE messages go to all root windows)
      */
