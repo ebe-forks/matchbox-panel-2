@@ -18,13 +18,13 @@ libnotify_la_LIBADD = $(MATCHBOX_PANEL_LIBS) $(DBUS_LIBS)
 
 DBUS_GLUE=notification-manager-glue.h
 %-glue.h: %.xml
-	dbus-binding-tool --mode=glib-server --output=$@ --prefix=$(subst -,_,$*) $^
+	$(AM_V_GEN) dbus-binding-tool --mode=glib-server --output=$@ --prefix=$(subst -,_,$*) $^
 
 MARSHALS = marshal.c marshal.h
 %.c: %.list
-	$(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --body > $@
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --body > $@
 %.h: %.list
-	$(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --header > $@
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --header > $@
 
 BUILT_SOURCES = $(DBUS_GLUE) $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)

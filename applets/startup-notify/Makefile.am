@@ -14,9 +14,9 @@ libstartup_notify_la_LDFLAGS = -avoid-version
 
 MARSHALS = marshal.c marshal.h
 %.c: %.list
-	$(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --body > $@
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --body > $@
 %.h: %.list
-	$(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --header > $@
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --header > $@
 
 BUILT_SOURCES = $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)

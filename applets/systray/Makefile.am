@@ -7,17 +7,10 @@ AM_CFLAGS = $(WARN_CFLAGS)
 appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libsystray.la
 
-na-marshal.h: na-marshal.list
-	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_na_marshal na-marshal.list --header > xgen-emh \
-	&& cp xgen-emh na-marshal.h \
-	&& rm -f xgen-emh xgen-emh~
-
-na-marshal.c: na-marshal.list
-	cd $(srcdir) \
-	&& $(GLIB_GENMARSHAL) --prefix=_na_marshal na-marshal.list --body > xgen-emc \
-	&& cp xgen-emc na-marshal.c \
-	&& rm -f xgen-emc xgen-emc~
+%.c: %.list
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_na_marshal $^ --body > $@
+%.h: %.list
+	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_na_marshal $^ --header > $@
 
 BUILT_SOURCES = na-marshal.c na-marshal.h
 
