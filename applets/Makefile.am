@@ -7,7 +7,7 @@ endif
 if HAVE_LIBSN
   SUBDIRS += startup
 if HAVE_DBUS
-    SUBDIRS += startup-notify
+  SUBDIRS += startup-notify
 endif
 endif
 
