@@ -4,6 +4,8 @@ AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR(matchbox-panel/mb-panel.c)
 AM_CONFIG_HEADER(config.h)
 
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
 AM_DISABLE_STATIC
 AC_ISC_POSIX
 AC_PROG_CC
