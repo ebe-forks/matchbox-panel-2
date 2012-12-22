@@ -17,7 +17,7 @@ GNOME_COMPILE_WARNINGS
 # base deps
 PKG_CHECK_MODULES(MATCHBOX_PANEL,
                   glib-2.0
-                  gtk+-2.0 >= 2.6
+                  gtk+-2.0 >= 2.18
                   gmodule-export-2.0)
 
 # startup-notification

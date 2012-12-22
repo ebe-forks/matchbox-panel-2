@@ -199,7 +199,7 @@ mb_panel_applet_create (const char    *id,
 
         gtk_button_set_relief (applet->button, GTK_RELIEF_NONE);
 
-        GTK_WIDGET_UNSET_FLAGS (button, GTK_CAN_FOCUS);
+        gtk_widget_set_can_focus (button, FALSE);
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
 

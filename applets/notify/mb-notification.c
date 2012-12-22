@@ -34,7 +34,7 @@ on_button_release (MbNotification *notification, GdkEventButton *event)
 static gint
 expose (GtkWidget *widget, GdkEventExpose *event)
 {
-  if (GTK_WIDGET_DRAWABLE (widget)) {
+  if (gtk_widget_is_drawable (widget)) {
     gtk_paint_box (widget->style, widget->window,
                    widget->state, GTK_SHADOW_OUT,
                    &event->area, widget, "notification",

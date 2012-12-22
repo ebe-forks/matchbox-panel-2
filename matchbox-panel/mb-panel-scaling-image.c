@@ -1,4 +1,4 @@
-/* 
+/*
  * (C) 2006, 2007 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
@@ -301,7 +301,7 @@ static void
 icon_theme_changed_cb (GtkIconTheme   *icon_theme,
                        MBPanelScalingImage *image)
 {
-        if (!GTK_WIDGET_REALIZED (image))
+        if (!gtk_widget_get_realized (GTK_WIDGET (image)))
                 return;
 
         clear_cache (image);
@@ -377,7 +377,7 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
                                   image);
 
         /* Reload icon if we are realized */
-        if (GTK_WIDGET_REALIZED (widget)) {
+        if (gtk_widget_get_realized (widget)) {
                 clear_cache (image);
 
                 reload_icon (MB_PANEL_SCALING_IMAGE (widget), TRUE);
@@ -483,7 +483,7 @@ mb_panel_scaling_image_set_icon (MBPanelScalingImage *image,
         if (icon)
                 image->priv->icon = g_strdup (icon);
 
-        if (!GTK_WIDGET_REALIZED (image))
+        if (!gtk_widget_get_realized (GTK_WIDGET (image)))
                 return;
 
         if (image->priv->caching) {
