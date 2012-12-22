@@ -9,7 +9,7 @@
 #ifndef __MB_PANEL_SCALING_IMAGE_H__
 #define __MB_PANEL_SCALING_IMAGE_H__
 
-#include <gtk/gtkimage.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

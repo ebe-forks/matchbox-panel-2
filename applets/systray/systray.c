@@ -7,8 +7,7 @@
  */
 
 #include <config.h>
-#include <gtk/gtkhbox.h>
-#include <gtk/gtkvbox.h>
+#include <gtk/gtk.h>
 #include <matchbox-panel/mb-panel.h>
 
 #include "na-tray-manager.h"

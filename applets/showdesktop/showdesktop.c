@@ -6,7 +6,8 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <gtk/gtkbutton.h>
+#include <config.h>
+#include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <matchbox-panel/mb-panel.h>

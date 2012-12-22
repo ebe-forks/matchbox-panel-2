@@ -13,12 +13,7 @@
 #endif
 
 #include <glib/gi18n.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkwindow.h>
-#include <gtk/gtkhbox.h>
-#include <gtk/gtkvbox.h>
-#include <gtk/gtkframe.h>
-
+#include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 
 #include <X11/Xatom.h>

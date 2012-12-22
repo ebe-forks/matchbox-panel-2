@@ -9,7 +9,7 @@
 #ifndef __MB_PANEL_H__
 #define __MB_PANEL_H__
 
-#include <gtk/gtkwidget.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 

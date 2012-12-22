@@ -1,7 +1,7 @@
 #ifndef _MB_NOTIFICATION
 #define _MB_NOTIFICATION
 
-#include <gtk/gtkeventbox.h>
+#include <gtk/gtk.h>
 #include "notify-store.h"
 
 G_BEGIN_DECLS

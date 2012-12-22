@@ -8,18 +8,11 @@
  */
 
 #include <config.h>
-#include <gtk/gtktogglebutton.h>
-#include <gtk/gtkimagemenuitem.h>
-#include <gtk/gtkmenu.h>
-#include <gtk/gtkimage.h>
-#include <gtk/gtkiconfactory.h>
-#include <gtk/gtkmain.h>
-#include <gtk/gtkhbox.h>
-#include <gtk/gtklabel.h>
-#include <gdk/gdkx.h>
+#include <string.h>
 #include <X11/Xatom.h>
 #include <glib/gi18n.h>
-#include <string.h>
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
 
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>

@@ -6,8 +6,9 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <gtk/gtklabel.h>
+#include <config.h>
 #include <time.h>
+#include <gtk/gtk.h>
 #include <matchbox-panel/mb-panel.h>
 
 typedef struct {

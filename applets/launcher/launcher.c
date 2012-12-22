@@ -7,10 +7,10 @@
  */
 
 #include <config.h>
-#include <gtk/gtkeventbox.h>
-#include <gdk/gdkx.h>
 #include <unistd.h>
 #include <string.h>
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 

@@ -4,11 +4,11 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <matchbox-panel/mb-panel.h>
-#include <gtk/gtkscalebutton.h>
-#include <gtk/gtkicontheme.h>
+#include <config.h>
 #include <string.h>
 #include <errno.h>
+#include <matchbox-panel/mb-panel.h>
+#include <gtk/gtk.h>
 
 typedef struct {
         GtkWidget *scale;

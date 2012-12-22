@@ -6,8 +6,9 @@
  * Licensed under the GPL v2 or greater.
  */
 
-#include <gtk/gtkicontheme.h>
+#include <config.h>
 #include <string.h>
+#include <gtk/gtk.h>
 
 #include "mb-panel-scaling-image.h"
 
