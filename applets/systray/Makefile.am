@@ -8,7 +8,8 @@ appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libsystray.la
 
 %.c: %.list
-	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_na_marshal $^ --body > $@
+	$(AM_V_GEN) (echo "#include \"na-marshal.h\""; \
+	  $(GLIB_GENMARSHAL) --internal --prefix=_na_marshal $^ --body) > $@
 %.h: %.list
 	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_na_marshal $^ --header > $@
 

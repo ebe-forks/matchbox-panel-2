@@ -14,7 +14,8 @@ libstartup_notify_la_LDFLAGS = -avoid-version
 
 MARSHALS = marshal.c marshal.h
 %.c: %.list
-	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --body > $@
+	$(AM_V_GEN) (echo "#include \"marshal.h\""; \
+	  $(GLIB_GENMARSHAL) --internal --prefix=mb_marshal $^ --body) > $@
 %.h: %.list
 	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=mb_marshal $^ --header > $@
 
