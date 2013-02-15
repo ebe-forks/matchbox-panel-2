@@ -35,6 +35,7 @@
 #include <libsn/sn.h>
 
 #include <string.h>
+#include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
 #define TIMEOUT                   20

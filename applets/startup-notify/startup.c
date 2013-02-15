@@ -38,6 +38,8 @@
 #include <string.h>
 #include "marshal.h"
 
+#include <matchbox-panel/mb-panel.h>
+
 #define TIMEOUT 20
 
 typedef struct LaunchItem {
@@ -78,7 +80,7 @@ notify_done (DBusGProxy *proxy, DBusGProxyCall *call, void *user_data)
   }
 }
 
-void
+static void
 notify_send (StartupApplet *applet, const char *summary)
 {
   dbus_g_proxy_begin_call (applet->proxy, "Notify",
