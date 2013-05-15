@@ -1,4 +1,4 @@
-SUBDIRS = brightness clock launcher notify systray showdesktop windowselector
+SUBDIRS = brightness clock exit launcher notify systray showdesktop windowselector
 
 if HAVE_BATTERY
   SUBDIRS += battery

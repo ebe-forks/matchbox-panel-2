@@ -91,6 +91,7 @@ matchbox-panel.pc
 matchbox-panel/Makefile
 applets/Makefile
 applets/clock/Makefile
+applets/exit/Makefile
 applets/launcher/Makefile
 applets/notify/Makefile
 applets/startup/Makefile
