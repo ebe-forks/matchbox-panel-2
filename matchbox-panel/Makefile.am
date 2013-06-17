@@ -14,8 +14,6 @@ bin_PROGRAMS = matchbox-panel
 matchbox_panel_SOURCES = mb-panel.c mb-panel-scaling-image.c
 
 matchbox_panel_LDADD = $(MATCHBOX_PANEL_LIBS)
-# This is required as gmodule-export in Poky doesn't have it
-matchbox_panel_LDFLAGS = -Wl,--export-dynamic
 
 CLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(BUILT_SOURCES)
