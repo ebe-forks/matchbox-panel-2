@@ -24,6 +24,7 @@ MARSHALS = marshal.c marshal.h
 	$(AM_V_GEN) $(GLIB_GENMARSHAL) --internal --prefix=mb_marshal $^ --header > $@
 
 BUILT_SOURCES = $(DBUS_GLUE) $(MARSHALS)
-CLEANFILES = $(BUILT_SOURCES)
 
 test_linkage_LDADD += libnotify.la
+
+-include $(top_srcdir)/git.mk

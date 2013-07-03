@@ -5,4 +5,4 @@ image_DATA = brightness-min.png         \
 
 EXTRA_DIST = $(image_DATA)
 
-MAINTAINERCLEANFILES = Makefile.in
+-include $(top_srcdir)/git.mk

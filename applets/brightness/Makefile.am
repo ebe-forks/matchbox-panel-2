@@ -8,3 +8,5 @@ libbrightness_la_CPPFLAGS = $(AM_CPPFLAGS) -DDATADIR=\"$(pkgdatadir)/brightness/
 libbrightness_la_LDFLAGS = -avoid-version -module
 
 test_linkage_LDADD += libbrightness.la
+
+-include $(top_srcdir)/git.mk

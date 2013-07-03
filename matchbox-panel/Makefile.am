@@ -15,6 +15,4 @@ matchbox_panel_SOURCES = mb-panel.c mb-panel-scaling-image.c
 
 matchbox_panel_LDADD = $(MATCHBOX_PANEL_LIBS)
 
-CLEANFILES = $(BUILT_SOURCES)
-DISTCLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
+-include $(top_srcdir)/git.mk

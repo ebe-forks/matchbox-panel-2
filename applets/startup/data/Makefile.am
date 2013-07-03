@@ -8,4 +8,4 @@ dist_image_DATA = hourglass-0.png        \
 	     hourglass-6.png         \
 	     hourglass-7.png
 
-MAINTAINERCLEANFILES = Makefile.in
+-include $(top_srcdir)/git.mk

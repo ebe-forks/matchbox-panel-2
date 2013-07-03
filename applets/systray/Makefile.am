@@ -16,8 +16,7 @@ libsystray_la_LDFLAGS = -avoid-version -module
 EXTRA_DIST = na-marshal.list
 
 BUILT_SOURCES = na-marshal.c na-marshal.h
-CLEANFILES = $(BUILT_SOURCES)
-DISTCLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES += $(BUILT_SOURCES)
 
 test_linkage_LDADD += libsystray.la
+
+-include $(top_srcdir)/git.mk

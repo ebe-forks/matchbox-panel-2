@@ -1,10 +1,11 @@
 SUBDIRS = matchbox-panel applets po
 
-pcdata_DATA= matchbox-panel.pc
 pcdatadir = $(libdir)/pkgconfig
+dist_pcdata_DATA= matchbox-panel.pc
 
-EXTRA_DIST = $(pcdata_DATA)
+MAINTAINERCLEANFILES = \
+	$(GITIGNORE_MAINTAINERCLEANFILES_TOPLEVEL) \
+	$(GITIGNORE_MAINTAINERCLEANFILES_MAKEFILE_IN) \
+	$(GITIGNORE_MAINTAINERCLEANFILES_M4_LIBTOOL)
 
-# Extra clean files so that maintainer-clean removes *everything*
-MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.sub configure depcomp install-sh ltmain.sh Makefile.in missing config.h.in
-
+-include $(top_srcdir)/git.mk

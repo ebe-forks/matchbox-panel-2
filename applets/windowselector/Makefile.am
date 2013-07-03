@@ -6,3 +6,5 @@ libwindowselector_la_CPPFLAGS = $(AM_CPPFLAGS) $(SN_CFLAGS)
 libwindowselector_la_LDFLAGS = -avoid-version -module
 
 test_linkage_LDADD += libwindowselector.la
+
+-include $(top_srcdir)/git.mk

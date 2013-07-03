@@ -18,3 +18,5 @@ endif
 libbattery_la_LDFLAGS = -avoid-version -module
 
 test_linkage_LDADD += libbattery.la
+
+-include $(top_srcdir)/git.mk
