@@ -1,6 +1,6 @@
 AC_PREREQ(2.53)
 AC_INIT(matchbox-panel, 2.0, http://www.openedhand.com/)
-AM_INIT_AUTOMAKE()
+AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CONFIG_SRCDIR(matchbox-panel/mb-panel.c)
 AM_CONFIG_HEADER(config.h)
 
