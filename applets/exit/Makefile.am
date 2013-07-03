@@ -11,3 +11,7 @@ libexit_la_SOURCES = exit.c
 libexit_la_LDFLAGS = -avoid-version
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include ../Makefile.applets
+
+test_linkage_LDADD += libexit.la

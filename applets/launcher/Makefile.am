@@ -12,3 +12,7 @@ liblauncher_la_LIBADD = $(SN_LIBS)
 liblauncher_la_LDFLAGS = -avoid-version
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include ../Makefile.applets
+
+test_linkage_LDADD += liblauncher.la

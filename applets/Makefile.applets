@@ -1,0 +1,5 @@
+# Binary to check that the applet actually links against everything it needs.
+noinst_PROGRAMS = test-linkage
+test_linkage_SOURCES = $(srcdir)/../common/test_main.c \
+                       $(top_srcdir)/matchbox-panel/mb-panel-scaling-image.c
+test_linkage_LDADD = $(MATCHBOX_PANEL_LIBS)

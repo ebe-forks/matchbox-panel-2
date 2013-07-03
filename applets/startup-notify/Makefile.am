@@ -23,3 +23,7 @@ BUILT_SOURCES = $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include ../Makefile.applets
+
+test_linkage_LDADD += libstartup-notify.la

@@ -27,3 +27,6 @@ CLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
 
+include ../Makefile.applets
+
+test_linkage_LDADD += libsystray.la

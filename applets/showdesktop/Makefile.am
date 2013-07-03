@@ -11,3 +11,7 @@ libshowdesktop_la_SOURCES = showdesktop.c
 libshowdesktop_la_LDFLAGS = -avoid-version
 
 MAINTAINERCLEANFILES = Makefile.in
+
+include ../Makefile.applets
+
+test_linkage_LDADD += libshowdesktop.la

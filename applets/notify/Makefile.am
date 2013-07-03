@@ -30,3 +30,7 @@ MARSHALS = marshal.c marshal.h
 BUILT_SOURCES = $(DBUS_GLUE) $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)
 MAINTAINERCLEANFILES = Makefile.in
+
+include ../Makefile.applets
+
+test_linkage_LDADD += libnotify.la
