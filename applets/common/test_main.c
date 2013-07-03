@@ -1,3 +1,4 @@
+#include <config.h>
 #include <gtk/gtk.h>
 
 extern GtkWidget *mb_panel_applet_create (const char *id, GtkOrientation orientation);

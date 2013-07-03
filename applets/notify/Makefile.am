@@ -1,10 +1,5 @@
-AM_CPPFLAGS=-DPKGDATADIR=\"$(pkgdatadir)\" \
-            -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-            $(MATCHBOX_PANEL_CFLAGS) $(DBUS_CFLAGS) \
-	    -I$(top_srcdir) -I$(top_builddir)
-AM_CFLAGS = $(WARN_CFLAGS)
+include ../Makefile.applets
 
-appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libnotify.la
 
 libnotify_la_SOURCES = applet.c \
@@ -13,7 +8,8 @@ libnotify_la_SOURCES = applet.c \
 	$(DBUS_GLUE) \
 	$(MARSHALS)
 
-libnotify_la_LDFLAGS = -avoid-version -Wl,--no-undefined
+libnotify_la_CPPFLAGS = $(AM_CPPFLAGS) $(DBUS_CFLAGS)
+libnotify_la_LDFLAGS = -avoid-version -module
 libnotify_la_LIBADD = $(MATCHBOX_PANEL_LIBS) $(DBUS_LIBS)
 
 DBUS_GLUE=notification-manager-glue.h
@@ -29,8 +25,5 @@ MARSHALS = marshal.c marshal.h
 
 BUILT_SOURCES = $(DBUS_GLUE) $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES = Makefile.in
-
-include ../Makefile.applets
 
 test_linkage_LDADD += libnotify.la

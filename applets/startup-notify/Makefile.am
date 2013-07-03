@@ -1,16 +1,11 @@
-AM_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
-              -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-              $(MATCHBOX_PANEL_CFLAGS) \
-              $(DBUS_CFLAGS) $(SN_CFLAGS) \
-              -I$(top_srcdir) -I$(top_builddir)
-AM_CFLAGS = $(WARN_CFLAGS)
+include ../Makefile.applets
 
-appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libstartup-notify.la
 
 libstartup_notify_la_SOURCES = startup.c $(MARSHALS)
-libstartup_notify_la_LIBADD = $(SN_LIBS) $(DBUS_LIBS)
-libstartup_notify_la_LDFLAGS = -avoid-version
+libstartup_notify_la_CPPFLAGS = $(AM_CPPFLAGS) $(DBUS_CFLAGS) $(SN_CFLAGS)
+libstartup_notify_la_LIBADD = $(DBUS_LIBS) $(SN_LIBS)
+libstartup_notify_la_LDFLAGS = -avoid-version -module
 
 MARSHALS = marshal.c marshal.h
 %.c: %.list
@@ -21,9 +16,5 @@ MARSHALS = marshal.c marshal.h
 
 BUILT_SOURCES = $(MARSHALS)
 CLEANFILES = $(BUILT_SOURCES)
-
-MAINTAINERCLEANFILES = Makefile.in
-
-include ../Makefile.applets
 
 test_linkage_LDADD += libstartup-notify.la

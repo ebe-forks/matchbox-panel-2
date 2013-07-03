@@ -1,16 +1,8 @@
-AM_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
-              -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-              $(MATCHBOX_PANEL_CFLAGS) $(SN_CFLAGS) \
-              -I$(top_srcdir) -I$(top_builddir)
-AM_CFLAGS = $(WARN_CFLAGS)
+include ../Makefile.applets
 
-appletdir = $(pkglibdir)
 applet_LTLIBRARIES = libwindowselector.la
 libwindowselector_la_SOURCES = windowselector.c
-libwindowselector_la_LDFLAGS = -avoid-version
-
-MAINTAINERCLEANFILES = Makefile.in
-
-include ../Makefile.applets
+libwindowselector_la_CPPFLAGS = $(AM_CPPFLAGS) $(SN_CFLAGS)
+libwindowselector_la_LDFLAGS = -avoid-version -module
 
 test_linkage_LDADD += libwindowselector.la

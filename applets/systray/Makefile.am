@@ -1,11 +1,4 @@
-AM_CPPFLAGS = -DPKGDATADIR=\"$(pkgdatadir)\" \
-              -DGETTEXT_PACKAGE=\"matchbox-panel\" \
-              $(MATCHBOX_PANEL_CFLAGS) \
-              -I$(top_srcdir) -I$(top_builddir)
-AM_CFLAGS = $(WARN_CFLAGS)
-
-appletdir = $(pkglibdir)
-applet_LTLIBRARIES = libsystray.la
+include ../Makefile.applets
 
 %.c: %.list
 	$(AM_V_GEN) (echo "#include \"na-marshal.h\""; \
@@ -13,20 +6,18 @@ applet_LTLIBRARIES = libsystray.la
 %.h: %.list
 	$(AM_V_GEN) $(GLIB_GENMARSHAL) --prefix=_na_marshal $^ --header > $@
 
-BUILT_SOURCES = na-marshal.c na-marshal.h
-
+applet_LTLIBRARIES = libsystray.la
 libsystray_la_SOURCES = $(BUILT_SOURCES) \
                         na-tray-manager.c \
 			na-tray-manager.h \
 			systray.c
-libsystray_la_LDFLAGS = -avoid-version
+libsystray_la_LDFLAGS = -avoid-version -module
 
 EXTRA_DIST = na-marshal.list
 
+BUILT_SOURCES = na-marshal.c na-marshal.h
 CLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(BUILT_SOURCES)
-MAINTAINERCLEANFILES = Makefile.in $(BUILT_SOURCES)
-
-include ../Makefile.applets
+MAINTAINERCLEANFILES += $(BUILT_SOURCES)
 
 test_linkage_LDADD += libsystray.la
