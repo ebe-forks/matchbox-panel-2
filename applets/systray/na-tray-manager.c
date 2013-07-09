@@ -26,8 +26,6 @@
 
 #include "na-tray-manager.h"
 
-#include <gdkconfig.h>
-#include <glib/gi18n.h>
 #if defined (GDK_WINDOWING_X11)
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
@@ -35,8 +33,6 @@
 #include <gdk/gdkwin32.h>
 #endif
 #include <gtk/gtk.h>
-
-#include "na-marshal.h"
 
 /* Signals */
 enum
@@ -98,6 +94,25 @@ na_tray_manager_init (NaTrayManager *manager)
 {
   manager->invisible = NULL;
   manager->socket_table = g_hash_table_new (NULL, NULL);
+
+  manager->padding = 0;
+  manager->icon_size = 0;
+
+  manager->fg.red = 0;
+  manager->fg.green = 0;
+  manager->fg.blue = 0;
+
+  manager->error.red = 0xffff;
+  manager->error.green = 0;
+  manager->error.blue = 0;
+
+  manager->warning.red = 0xffff;
+  manager->warning.green = 0xffff;
+  manager->warning.blue = 0;
+
+  manager->success.red = 0;
+  manager->success.green = 0xffff;
+  manager->success.blue = 0;
 }
 
 static void
@@ -129,8 +144,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, tray_icon_added),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 1,
 		  GTK_TYPE_SOCKET);
 
@@ -139,8 +153,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, tray_icon_removed),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 1,
 		  GTK_TYPE_SOCKET);
   manager_signals[MESSAGE_SENT] =
@@ -148,8 +161,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, message_sent),
-		  NULL, NULL,
-		  _na_marshal_VOID__OBJECT_STRING_LONG_LONG,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 4,
 		  GTK_TYPE_SOCKET,
 		  G_TYPE_STRING,
@@ -160,8 +172,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, message_cancelled),
-		  NULL, NULL,
-		  _na_marshal_VOID__OBJECT_LONG,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 2,
 		  GTK_TYPE_SOCKET,
 		  G_TYPE_LONG);
@@ -170,8 +181,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, lost_selection),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 0);
 
 #if defined (GDK_WINDOWING_X11)
@@ -252,120 +262,61 @@ static gboolean
 na_tray_manager_plug_removed (GtkSocket       *socket,
 			      NaTrayManager   *manager)
 {
-  Window *window;
+  NaTrayChild *child = NA_TRAY_CHILD (socket);
 
-  window = g_object_get_data (G_OBJECT (socket), "na-tray-child-window");
-
-  g_hash_table_remove (manager->socket_table, GINT_TO_POINTER (*window));
-  g_object_set_data (G_OBJECT (socket), "na-tray-child-window",
-		     NULL);
-  
-  g_signal_emit (manager, manager_signals[TRAY_ICON_REMOVED], 0, socket);
+  g_hash_table_remove (manager->socket_table,
+                       GINT_TO_POINTER (child->icon_window));
+  g_signal_emit (manager, manager_signals[TRAY_ICON_REMOVED], 0, child);
 
   /* This destroys the socket. */
   return FALSE;
 }
 
 static void
-na_tray_manager_make_socket_transparent (GtkWidget *widget,
-                                         gpointer   user_data)
-{
-  if (GTK_WIDGET_NO_WINDOW (widget))
-    return;
-
-  gdk_window_set_back_pixmap (widget->window, NULL, TRUE);
-}
-
-static gboolean
-na_tray_manager_socket_exposed (GtkWidget      *widget,
-                                GdkEventExpose *event,
-                                gpointer        user_data)
-{
-  gdk_window_clear_area (widget->window,
-                         event->area.x, event->area.y,
-                         event->area.width, event->area.height);
-  return FALSE;
-}
-
-static void
-na_tray_manager_socket_style_set (GtkWidget *widget,
-                                  GtkStyle  *previous_style,
-                                  gpointer   user_data)
-{
-  if (widget->window == NULL)
-    return;
-
-  na_tray_manager_make_socket_transparent (widget, user_data);
-}
-
-static void
 na_tray_manager_handle_dock_request (NaTrayManager       *manager,
 				     XClientMessageEvent *xevent)
 {
-  GtkWidget *socket;
-  Window *window;
-  GtkRequisition req;
+  Window icon_window = xevent->data.l[2];
+  GtkWidget *child;
 
-  if (g_hash_table_lookup (manager->socket_table, GINT_TO_POINTER (xevent->data.l[2])))
+  if (g_hash_table_lookup (manager->socket_table,
+                           GINT_TO_POINTER (icon_window)))
     {
       /* We already got this notification earlier, ignore this one */
       return;
     }
-  
-  socket = gtk_socket_new ();
 
-  gtk_widget_set_app_paintable (socket, TRUE);
-  //FIXME: need to find a theme where this (and expose event) is needed
-  gtk_widget_set_double_buffered (socket, FALSE);
-  g_signal_connect (socket, "realize",
-                    G_CALLBACK (na_tray_manager_make_socket_transparent), NULL);
-  g_signal_connect (socket, "expose_event",
-                    G_CALLBACK (na_tray_manager_socket_exposed), NULL);
-  g_signal_connect_after (socket, "style_set",
-                          G_CALLBACK (na_tray_manager_socket_style_set), NULL);
-  
-  /* We need to set the child window here
-   * so that the client can call _get functions
-   * in the signal handler
-   */
-  window = g_new (Window, 1);
-  *window = xevent->data.l[2];
-      
-  g_object_set_data_full (G_OBJECT (socket),
-			  "na-tray-child-window",
-			  window, g_free);
+  child = na_tray_child_new (manager->screen, icon_window);
+  if (child == NULL) /* already gone or other error */
+    return;
+
   g_signal_emit (manager, manager_signals[TRAY_ICON_ADDED], 0,
-		 socket);
+		 child);
 
-  /* Add the socket only if it's been attached */
-  if (GTK_IS_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (socket))))
+  /* If the child wasn't attached, then destroy it */
+
+  if (!GTK_IS_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (child))))
     {
-      g_signal_connect (socket, "plug_removed",
-			G_CALLBACK (na_tray_manager_plug_removed), manager);
-      
-      gtk_socket_add_id (GTK_SOCKET (socket), *window);
-
-      g_hash_table_insert (manager->socket_table, GINT_TO_POINTER (*window), socket);
-
-      /*
-       * Make sure the icons have a meaningfull size ...
-       */ 
-      req.width = req.height = 1;
-      gtk_widget_size_request (socket, &req);
-      /*
-      if ((req.width < 16) || (req.height < 16))
-      {
-          gint nw = MAX (24, req.width);
-          gint nh = MAX (24, req.height);
-          g_warning (_("tray icon has requested a size of (%i x %i), resizing to (%i x %i)"), 
-                      req.width, req.height, nw, nh);
-          gtk_widget_set_size_request(icon, nw,  nh);
-      }
-      */
-      gtk_widget_show(socket);
+      gtk_widget_destroy (child);
+      return;
     }
-  else
-    gtk_widget_destroy (socket);
+
+  g_signal_connect (child, "plug_removed",
+		    G_CALLBACK (na_tray_manager_plug_removed), manager);
+
+  gtk_socket_add_id (GTK_SOCKET (child), icon_window);
+
+  if (!gtk_socket_get_plug_window (GTK_SOCKET (child)))
+    {
+      /* Embedding failed, we won't get a plug-removed signal */
+      /* This signal destroys the socket */
+      g_signal_emit (manager, manager_signals[TRAY_ICON_REMOVED], 0, child);
+      return;
+    }
+
+  g_hash_table_insert (manager->socket_table,
+                       GINT_TO_POINTER (icon_window), child);
+  gtk_widget_show (child);
 }
 
 static void
@@ -375,19 +326,13 @@ pending_message_free (PendingMessage *message)
   g_free (message);
 }
 
-static GdkFilterReturn
-na_tray_manager_handle_client_message_message_data (GdkXEvent *xev,
-                                                    GdkEvent  *event,
-                                                    gpointer   data)
+static void
+na_tray_manager_handle_message_data (NaTrayManager       *manager,
+				     XClientMessageEvent *xevent)
 {
-  XClientMessageEvent *xevent;
-  NaTrayManager       *manager;
-  GList               *p;
-  int                  len;
+  GList *p;
+  int    len;
   
-  xevent  = (XClientMessageEvent *) xev;
-  manager = data;
-
   /* Try to see if we can find the pending message in the list */
   for (p = manager->messages; p; p = p->next)
     {
@@ -421,8 +366,6 @@ na_tray_manager_handle_client_message_message_data (GdkXEvent *xev,
           break;
 	}
     }
-
-  return GDK_FILTER_REMOVE;
 }
 
 static void
@@ -442,25 +385,25 @@ na_tray_manager_handle_begin_message (NaTrayManager       *manager,
   if (!socket)
     return;
 
+  timeout = xevent->data.l[2];
+  len     = xevent->data.l[3];
+  id      = xevent->data.l[4];
+
   /* Check if the same message is already in the queue and remove it if so */
   for (p = manager->messages; p; p = p->next)
     {
-      PendingMessage *msg = p->data;
+      PendingMessage *pmsg = p->data;
 
-      if (xevent->window == msg->window &&
-	  xevent->data.l[4] == msg->id)
+      if (xevent->window == pmsg->window &&
+	  id == pmsg->id)
 	{
 	  /* Hmm, we found it, now remove it */
-	  pending_message_free (msg);
+	  pending_message_free (pmsg);
 	  manager->messages = g_list_remove_link (manager->messages, p);
           g_list_free_1 (p);
 	  break;
 	}
     }
-
-  timeout = xevent->data.l[2];
-  len     = xevent->data.l[3];
-  id      = xevent->data.l[4];
 
   if (len == 0)
     {
@@ -488,6 +431,9 @@ na_tray_manager_handle_cancel_message (NaTrayManager       *manager,
 {
   GList     *p;
   GtkSocket *socket;
+  long       id;
+
+  id = xevent->data.l[2];
   
   /* Check if the message is in the queue and remove it if so */
   for (p = manager->messages; p; p = p->next)
@@ -495,7 +441,7 @@ na_tray_manager_handle_cancel_message (NaTrayManager       *manager,
       PendingMessage *msg = p->data;
 
       if (xevent->window == msg->window &&
-	  xevent->data.l[4] == msg->id)
+	  id == msg->id)
 	{
 	  pending_message_free (msg);
 	  manager->messages = g_list_remove_link (manager->messages, p);
@@ -515,39 +461,6 @@ na_tray_manager_handle_cancel_message (NaTrayManager       *manager,
 }
 
 static GdkFilterReturn
-na_tray_manager_handle_client_message_opcode (GdkXEvent *xev,
-                                              GdkEvent  *event,
-                                              gpointer   data)
-{
-  XClientMessageEvent *xevent;
-  NaTrayManager       *manager;
-
-  xevent  = (XClientMessageEvent *) xev;
-  manager = data;
-
-  switch (xevent->data.l[1])
-    {
-    case SYSTEM_TRAY_REQUEST_DOCK:
-      /* Ignore this one since we don't know on which window this was received
-       * and so we can't know for which screen this is. It will be handled
-       * in na_tray_manager_window_filter() since we also receive it there */
-      break;
-
-    case SYSTEM_TRAY_BEGIN_MESSAGE:
-      na_tray_manager_handle_begin_message (manager, xevent);
-      return GDK_FILTER_REMOVE;
-
-    case SYSTEM_TRAY_CANCEL_MESSAGE:
-      na_tray_manager_handle_cancel_message (manager, xevent);
-      return GDK_FILTER_REMOVE;
-    default:
-      break;
-    }
-
-  return GDK_FILTER_CONTINUE;
-}
-
-static GdkFilterReturn
 na_tray_manager_window_filter (GdkXEvent *xev,
                                GdkEvent  *event,
                                gpointer   data)
@@ -557,8 +470,7 @@ na_tray_manager_window_filter (GdkXEvent *xev,
 
   if (xevent->type == ClientMessage)
     {
-      /* We handle this client message here. See comment in
-       * na_tray_manager_handle_client_message_opcode() for details */
+      /* _NET_SYSTEM_TRAY_OPCODE: SYSTEM_TRAY_REQUEST_DOCK */
       if (xevent->xclient.message_type == manager->opcode_atom &&
           xevent->xclient.data.l[1]    == SYSTEM_TRAY_REQUEST_DOCK)
 	{
@@ -566,6 +478,29 @@ na_tray_manager_window_filter (GdkXEvent *xev,
                                                (XClientMessageEvent *) xevent);
           return GDK_FILTER_REMOVE;
 	}
+      /* _NET_SYSTEM_TRAY_OPCODE: SYSTEM_TRAY_BEGIN_MESSAGE */
+      else if (xevent->xclient.message_type == manager->opcode_atom &&
+               xevent->xclient.data.l[1]    == SYSTEM_TRAY_BEGIN_MESSAGE)
+        {
+          na_tray_manager_handle_begin_message (manager,
+                                                (XClientMessageEvent *) event);
+          return GDK_FILTER_REMOVE;
+        }
+      /* _NET_SYSTEM_TRAY_OPCODE: SYSTEM_TRAY_CANCEL_MESSAGE */
+      else if (xevent->xclient.message_type == manager->opcode_atom &&
+               xevent->xclient.data.l[1]    == SYSTEM_TRAY_CANCEL_MESSAGE)
+        {
+          na_tray_manager_handle_cancel_message (manager,
+                                                 (XClientMessageEvent *) event);
+          return GDK_FILTER_REMOVE;
+        }
+      /* _NET_SYSTEM_TRAY_MESSAGE_DATA */
+      else if (xevent->xclient.message_type == manager->message_data_atom)
+        {
+          na_tray_manager_handle_message_data (manager,
+                                               (XClientMessageEvent *) event);
+          return GDK_FILTER_REMOVE;
+        }
     }
   else if (xevent->type == SelectionClear)
     {
@@ -598,21 +533,24 @@ na_tray_manager_unmanage (NaTrayManager *manager)
   GdkDisplay *display;
   guint32     timestamp;
   GtkWidget  *invisible;
+  GdkWindow  *window;
 
   if (manager->invisible == NULL)
     return;
 
   invisible = manager->invisible;
+  window = gtk_widget_get_window (invisible);
+
   g_assert (GTK_IS_INVISIBLE (invisible));
   g_assert (gtk_widget_get_realized (invisible));
-  g_assert (GDK_IS_WINDOW (invisible->window));
+  g_assert (GDK_IS_WINDOW (window));
   
   display = gtk_widget_get_display (invisible);
   
   if (gdk_selection_owner_get_for_display (display, manager->selection_atom) ==
-      invisible->window)
+      window)
     {
-      timestamp = gdk_x11_get_server_time (invisible->window);      
+      timestamp = gdk_x11_get_server_time (window);
       gdk_selection_owner_set_for_display (display,
                                            NULL,
                                            manager->selection_atom,
@@ -620,10 +558,7 @@ na_tray_manager_unmanage (NaTrayManager *manager)
                                            TRUE);
     }
 
-  //FIXME: we should also use gdk_remove_client_message_filter when it's
-  //available
-  // See bug #351254
-  gdk_window_remove_filter (invisible->window,
+  gdk_window_remove_filter (window,
                             na_tray_manager_window_filter, manager);  
 
   manager->invisible = NULL; /* prior to destroy for reentrancy paranoia */
@@ -636,12 +571,14 @@ static void
 na_tray_manager_set_orientation_property (NaTrayManager *manager)
 {
 #ifdef GDK_WINDOWING_X11
+  GdkWindow  *window;
   GdkDisplay *display;
   Atom        orientation_atom;
   gulong      data[1];
 
-  if (!manager->invisible || !manager->invisible->window)
-    return;
+  g_return_if_fail (manager->invisible != NULL);
+  window = gtk_widget_get_window (manager->invisible);
+  g_return_if_fail (window != NULL);
 
   display = gtk_widget_get_display (manager->invisible);
   orientation_atom = gdk_x11_get_xatom_by_name_for_display (display,
@@ -652,11 +589,155 @@ na_tray_manager_set_orientation_property (NaTrayManager *manager)
 		SYSTEM_TRAY_ORIENTATION_VERT;
 
   XChangeProperty (GDK_DISPLAY_XDISPLAY (display),
-		   GDK_WINDOW_XWINDOW (manager->invisible->window),
+		   GDK_WINDOW_XID (window),
                    orientation_atom,
 		   XA_CARDINAL, 32,
 		   PropModeReplace,
 		   (guchar *) &data, 1);
+#endif
+}
+
+static void
+na_tray_manager_set_visual_property (NaTrayManager *manager)
+{
+#ifdef GDK_WINDOWING_X11
+  GdkWindow  *window;
+  GdkDisplay *display;
+  Visual     *xvisual;
+  Atom        visual_atom;
+  gulong      data[1];
+
+  g_return_if_fail (manager->invisible != NULL);
+  window = gtk_widget_get_window (manager->invisible);
+  g_return_if_fail (window != NULL);
+
+  /* The visual property is a hint to the tray icons as to what visual they
+   * should use for their windows. If the X server has RGBA colormaps, then
+   * we tell the tray icons to use a RGBA colormap and we'll composite the
+   * icon onto its parents with real transparency. Otherwise, we just tell
+   * the icon to use our colormap, and we'll do some hacks with parent
+   * relative backgrounds to simulate transparency.
+   */
+
+  display = gtk_widget_get_display (manager->invisible);
+  visual_atom = gdk_x11_get_xatom_by_name_for_display (display,
+						       "_NET_SYSTEM_TRAY_VISUAL");
+
+  if (gdk_screen_get_rgba_visual (manager->screen) != NULL &&
+      gdk_display_supports_composite (display))
+    xvisual = GDK_VISUAL_XVISUAL (gdk_screen_get_rgba_visual (manager->screen));
+  else
+    {
+      /* We actually want the visual of the tray where the icons will
+       * be embedded. In almost all cases, this will be the same as the visual
+       * of the screen.
+       */
+      xvisual = GDK_VISUAL_XVISUAL (gdk_screen_get_system_visual (manager->screen));
+    }
+
+  data[0] = XVisualIDFromVisual (xvisual);
+
+  XChangeProperty (GDK_DISPLAY_XDISPLAY (display),
+                   GDK_WINDOW_XID (window),
+                   visual_atom,
+                   XA_VISUALID, 32,
+                   PropModeReplace,
+                   (guchar *) &data, 1);
+#endif
+}
+
+static void
+na_tray_manager_set_padding_property (NaTrayManager *manager)
+{
+#ifdef GDK_WINDOWING_X11
+  GdkWindow  *window;
+  GdkDisplay *display;
+  Atom        atom;
+  gulong      data[1];
+
+  g_return_if_fail (manager->invisible != NULL);
+  window = gtk_widget_get_window (manager->invisible);
+  g_return_if_fail (window != NULL);
+
+  display = gtk_widget_get_display (manager->invisible);
+  atom = gdk_x11_get_xatom_by_name_for_display (display,
+                                                "_NET_SYSTEM_TRAY_PADDING");
+
+  data[0] = manager->padding;
+
+  XChangeProperty (GDK_DISPLAY_XDISPLAY (display),
+                   GDK_WINDOW_XID (window),
+                   atom,
+                   XA_CARDINAL, 32,
+                   PropModeReplace,
+                   (guchar *) &data, 1);
+#endif
+}
+
+static void
+na_tray_manager_set_icon_size_property (NaTrayManager *manager)
+{
+#ifdef GDK_WINDOWING_X11
+  GdkWindow  *window;
+  GdkDisplay *display;
+  Atom        atom;
+  gulong      data[1];
+
+  g_return_if_fail (manager->invisible != NULL);
+  window = gtk_widget_get_window (manager->invisible);
+  g_return_if_fail (window != NULL);
+
+  display = gtk_widget_get_display (manager->invisible);
+  atom = gdk_x11_get_xatom_by_name_for_display (display,
+                                                "_NET_SYSTEM_TRAY_ICON_SIZE");
+
+  data[0] = manager->icon_size;
+
+  XChangeProperty (GDK_DISPLAY_XDISPLAY (display),
+                   GDK_WINDOW_XID (window),
+                   atom,
+                   XA_CARDINAL, 32,
+                   PropModeReplace,
+                   (guchar *) &data, 1);
+#endif
+}
+
+static void
+na_tray_manager_set_colors_property (NaTrayManager *manager)
+{
+#ifdef GDK_WINDOWING_X11
+  GdkWindow  *window;
+  GdkDisplay *display;
+  Atom        atom;
+  gulong      data[12];
+
+  g_return_if_fail (manager->invisible != NULL);
+  window = gtk_widget_get_window (manager->invisible);
+  g_return_if_fail (window != NULL);
+
+  display = gtk_widget_get_display (manager->invisible);
+  atom = gdk_x11_get_xatom_by_name_for_display (display,
+                                                "_NET_SYSTEM_TRAY_COLORS");
+
+  data[0] = manager->fg.red;
+  data[1] = manager->fg.green;
+  data[2] = manager->fg.blue;
+  data[3] = manager->error.red;
+  data[4] = manager->error.green;
+  data[5] = manager->error.blue;
+  data[6] = manager->warning.red;
+  data[7] = manager->warning.green;
+  data[8] = manager->warning.blue;
+  data[9] = manager->success.red;
+  data[10] = manager->success.green;
+  data[11] = manager->success.blue;
+
+  XChangeProperty (GDK_DISPLAY_XDISPLAY (display),
+                   GDK_WINDOW_XID (window),
+                   atom,
+                   XA_CARDINAL, 32,
+                   PropModeReplace,
+                   (guchar *) &data, 12);
 #endif
 }
 
@@ -669,6 +750,7 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
   GdkDisplay *display;
   Screen     *xscreen;
   GtkWidget  *invisible;
+  GdkWindow  *window;
   char       *selection_atom_name;
   guint32     timestamp;
   
@@ -682,6 +764,9 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
   if (na_tray_manager_check_running_screen_x11 (screen))
     return FALSE;
 #endif
+  
+  manager->screen = screen;
+
   display = gdk_screen_get_display (screen);
   xscreen = GDK_SCREEN_XSCREEN (screen);
   
@@ -696,13 +781,22 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
   manager->selection_atom = gdk_atom_intern (selection_atom_name, FALSE);
   g_free (selection_atom_name);
 
+  manager->invisible = invisible;
+  g_object_ref (G_OBJECT (manager->invisible));
+
   na_tray_manager_set_orientation_property (manager);
+  na_tray_manager_set_visual_property (manager);
+  na_tray_manager_set_padding_property (manager);
+  na_tray_manager_set_icon_size_property (manager);
+  na_tray_manager_set_colors_property (manager);
   
-  timestamp = gdk_x11_get_server_time (invisible->window);
+  window = gtk_widget_get_window (invisible);
+
+  timestamp = gdk_x11_get_server_time (window);
 
   /* Check if we could set the selection owner successfully */
   if (gdk_selection_owner_set_for_display (display,
-                                           invisible->window,
+                                           window,
                                            manager->selection_atom,
                                            timestamp,
                                            TRUE))
@@ -720,7 +814,7 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
       xev.data.l[0] = timestamp;
       xev.data.l[1] = gdk_x11_atom_to_xatom_for_display (display,
                                                          manager->selection_atom);
-      xev.data.l[2] = GDK_WINDOW_XWINDOW (invisible->window);
+      xev.data.l[2] = GDK_WINDOW_XID (window);
       xev.data.l[3] = 0;	/* manager specific data */
       xev.data.l[4] = 0;	/* manager specific data */
 
@@ -728,15 +822,14 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
 		  RootWindowOfScreen (xscreen),
 		  False, StructureNotifyMask, (XEvent *)&xev);
 
-      manager->invisible = invisible;
-      g_object_ref (G_OBJECT (manager->invisible));
-      
       opcode_atom = gdk_atom_intern ("_NET_SYSTEM_TRAY_OPCODE", FALSE);
       manager->opcode_atom = gdk_x11_atom_to_xatom_for_display (display,
                                                                 opcode_atom);
 
       message_data_atom = gdk_atom_intern ("_NET_SYSTEM_TRAY_MESSAGE_DATA",
                                            FALSE);
+      manager->message_data_atom = gdk_x11_atom_to_xatom_for_display (display,
+                                                                      message_data_atom);
 
       /* Add a window filter */
 #if 0
@@ -745,22 +838,17 @@ na_tray_manager_manage_screen_x11 (NaTrayManager *manager,
                         G_CALLBACK (na_tray_manager_selection_clear_event),
                         manager);
 #endif
-      /* This is for SYSTEM_TRAY_REQUEST_DOCK and SelectionClear */
-      gdk_window_add_filter (invisible->window,
+      gdk_window_add_filter (window,
                              na_tray_manager_window_filter, manager);
-      /* This is for SYSTEM_TRAY_BEGIN_MESSAGE and SYSTEM_TRAY_CANCEL_MESSAGE */
-      gdk_display_add_client_message_filter (display, opcode_atom,
-                                             na_tray_manager_handle_client_message_opcode,
-                                             manager);
-      /* This is for _NET_SYSTEM_TRAY_MESSAGE_DATA */
-      gdk_display_add_client_message_filter (display, message_data_atom,
-                                             na_tray_manager_handle_client_message_message_data,
-                                             manager);
       return TRUE;
     }
   else
     {
       gtk_widget_destroy (invisible);
+      g_object_unref (invisible);
+      manager->invisible = NULL;
+
+      manager->screen = NULL;
  
       return FALSE;
     }
@@ -819,67 +907,6 @@ na_tray_manager_check_running (GdkScreen *screen)
 #endif
 }
 
-char *
-na_tray_manager_get_child_title (NaTrayManager      *manager,
-				 NaTrayManagerChild *child)
-{
-  char *retval = NULL;
-#ifdef GDK_WINDOWING_X11
-  GdkDisplay *display;
-  Window *child_window;
-  Atom utf8_string, atom, type;
-  int result;
-  int format;
-  gulong nitems;
-  gulong bytes_after;
-  gchar *val;
-
-  g_return_val_if_fail (NA_IS_TRAY_MANAGER (manager), NULL);
-  g_return_val_if_fail (GTK_IS_SOCKET (child), NULL);
-  
-  display = gdk_screen_get_display (manager->screen);
-
-  child_window = g_object_get_data (G_OBJECT (child),
-				    "na-tray-child-window");
-
-  utf8_string = gdk_x11_get_xatom_by_name_for_display (display, "UTF8_STRING");
-  atom = gdk_x11_get_xatom_by_name_for_display (display, "_NET_WM_NAME");
-
-  gdk_error_trap_push ();
-
-  result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
-			       *child_window,
-			       atom,
-			       0, G_MAXLONG,
-			       False, utf8_string,
-			       &type, &format, &nitems,
-			       &bytes_after, (guchar **)(gpointer)&val);
-  
-  if (gdk_error_trap_pop () || result != Success)
-    return NULL;
-
-  if (type != utf8_string ||
-      format != 8 ||
-      nitems == 0)
-    {
-      if (val)
-	XFree (val);
-      return NULL;
-    }
-
-  if (!g_utf8_validate (val, nitems, NULL))
-    {
-      XFree (val);
-      return NULL;
-    }
-
-  retval = g_strndup (val, nitems);
-
-  XFree (val);
-#endif
-  return retval;
-}
-
 void
 na_tray_manager_set_orientation (NaTrayManager  *manager,
 				 GtkOrientation  orientation)
@@ -893,6 +920,57 @@ na_tray_manager_set_orientation (NaTrayManager  *manager,
       na_tray_manager_set_orientation_property (manager);
 
       g_object_notify (G_OBJECT (manager), "orientation");
+    }
+}
+
+void
+na_tray_manager_set_padding (NaTrayManager *manager,
+                             gint           padding)
+{
+  g_return_if_fail (NA_IS_TRAY_MANAGER (manager));
+
+  if (manager->padding != padding)
+    {
+      manager->padding = padding;
+
+      na_tray_manager_set_padding_property (manager);
+    }
+}
+
+void
+na_tray_manager_set_icon_size (NaTrayManager *manager,
+                               gint           icon_size)
+{
+  g_return_if_fail (NA_IS_TRAY_MANAGER (manager));
+
+  if (manager->icon_size != icon_size)
+    {
+      manager->icon_size = icon_size;
+
+      na_tray_manager_set_icon_size_property (manager);
+    }
+}
+
+void
+na_tray_manager_set_colors (NaTrayManager *manager,
+                            GdkColor      *fg,
+                            GdkColor      *error,
+                            GdkColor      *warning,
+                            GdkColor      *success)
+{
+  g_return_if_fail (NA_IS_TRAY_MANAGER (manager));
+
+  if (!gdk_color_equal (&manager->fg, fg) ||
+      !gdk_color_equal (&manager->error, error) ||
+      !gdk_color_equal (&manager->warning, warning) ||
+      !gdk_color_equal (&manager->success, success))
+    {
+      manager->fg = *fg;
+      manager->error = *error;
+      manager->warning = *warning;
+      manager->success = *success;
+
+      na_tray_manager_set_colors_property (manager);
     }
 }
 

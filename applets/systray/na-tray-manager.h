@@ -24,10 +24,12 @@
 #ifndef __NA_TRAY_MANAGER_H__
 #define __NA_TRAY_MANAGER_H__
 
-#include <gtk/gtk.h>
 #ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
 #endif
+#include <gtk/gtk.h>
+
+#include "na-tray-child.h"
 
 G_BEGIN_DECLS
 
@@ -40,7 +42,6 @@ G_BEGIN_DECLS
 	
 typedef struct _NaTrayManager	    NaTrayManager;
 typedef struct _NaTrayManagerClass  NaTrayManagerClass;
-typedef struct _NaTrayManagerChild  NaTrayManagerChild;
 
 struct _NaTrayManager
 {
@@ -49,11 +50,18 @@ struct _NaTrayManager
 #ifdef GDK_WINDOWING_X11
   GdkAtom selection_atom;
   Atom    opcode_atom;
+  Atom    message_data_atom;
 #endif
   
   GtkWidget *invisible;
   GdkScreen *screen;
   GtkOrientation orientation;
+  gint padding;
+  gint icon_size;
+  GdkColor fg;
+  GdkColor error;
+  GdkColor warning;
+  GdkColor success;
 
   GList *messages;
   GHashTable *socket_table;
@@ -64,18 +72,18 @@ struct _NaTrayManagerClass
   GObjectClass parent_class;
 
   void (* tray_icon_added)   (NaTrayManager      *manager,
-			      NaTrayManagerChild *child);
+			      NaTrayChild        *child);
   void (* tray_icon_removed) (NaTrayManager      *manager,
-			      NaTrayManagerChild *child);
+			      NaTrayChild        *child);
 
   void (* message_sent)      (NaTrayManager      *manager,
-			      NaTrayManagerChild *child,
+			      NaTrayChild        *child,
 			      const gchar        *message,
 			      glong               id,
 			      glong               timeout);
   
   void (* message_cancelled) (NaTrayManager      *manager,
-			      NaTrayManagerChild *child,
+			      NaTrayChild        *child,
 			      glong               id);
 
   void (* lost_selection)    (NaTrayManager      *manager);
@@ -87,11 +95,19 @@ gboolean        na_tray_manager_check_running   (GdkScreen          *screen);
 NaTrayManager  *na_tray_manager_new             (void);
 gboolean        na_tray_manager_manage_screen   (NaTrayManager      *manager,
 						 GdkScreen          *screen);
-char           *na_tray_manager_get_child_title (NaTrayManager      *manager,
-						 NaTrayManagerChild *child);
 void            na_tray_manager_set_orientation (NaTrayManager      *manager,
 						 GtkOrientation      orientation);
 GtkOrientation  na_tray_manager_get_orientation (NaTrayManager      *manager);
+void            na_tray_manager_set_padding     (NaTrayManager      *manager,
+						 gint                padding);
+void            na_tray_manager_set_icon_size   (NaTrayManager      *manager,
+						 gint                padding);
+void            na_tray_manager_set_colors      (NaTrayManager      *manager,
+						 GdkColor           *fg,
+						 GdkColor           *error,
+						 GdkColor           *warning,
+						 GdkColor           *success);
+
 
 G_END_DECLS
 
