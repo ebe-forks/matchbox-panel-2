@@ -1,7 +1,10 @@
-/* 
- * (C) 2006 OpenedHand Ltd.
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
+
+/*
+ * (C) 2006-2013 Intel Corp
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
+ *         Ross Burton <ross.burton@intel.com>
  *
  * Licensed under the GPL v2 or greater.
  */
@@ -32,10 +35,9 @@ timeout (ClockApplet *applet)
         time_t t;
         char str[6], *markup;
 
-        /* Update label */
         t = time (NULL);
-        strftime (str, 6, "%H:%M", localtime (&t));
-        
+        strftime (str, sizeof (str), "%H:%M", localtime (&t));
+
         markup = g_strdup_printf("<b>%s</b>", str);
 
         gtk_label_set_markup (applet->label, markup);
@@ -50,14 +52,13 @@ timeout (ClockApplet *applet)
 static gboolean
 initial_timeout (ClockApplet *applet)
 {
-        /* Update label */
         timeout (applet);
-        
+
         /* Install a new timeout that is called every minute */
-        applet->timeout_id = g_timeout_add (60 * 1000,
-                                            (GSourceFunc) timeout,
-                                            applet);
-        
+        applet->timeout_id = g_timeout_add_seconds (60,
+                                                    (GSourceFunc) timeout,
+                                                    applet);
+
         /* Don't call this again */
         return FALSE;
 }
@@ -71,10 +72,8 @@ mb_panel_applet_create (const char    *id,
         time_t t;
         struct tm *local_time;
 
-        /* Create applet data structure */
         applet = g_slice_new0 (ClockApplet);
 
-        /* Create label */
         label = gtk_label_new (NULL);
         applet->label = GTK_LABEL (label);
 
@@ -84,23 +83,20 @@ mb_panel_applet_create (const char    *id,
                            (GWeakNotify) clock_applet_free,
                            applet);
 
-        /* Is this a vertical panel? */
         if (orientation == GTK_ORIENTATION_VERTICAL) {
-                /* Yes: Rotate label */
                 gtk_label_set_angle (GTK_LABEL (label), 90.0);
         }
-        
+
         /* Set up a timeout to be called when we hit the next minute */
         t = time (NULL);
         local_time = localtime (&t);
-        
-        applet->timeout_id = g_timeout_add ((60 - local_time->tm_sec) * 1000,
-                                            (GSourceFunc) initial_timeout,
-                                            applet);
-        
+
+        applet->timeout_id = g_timeout_add_seconds (60 - local_time->tm_sec,
+                                                    (GSourceFunc) initial_timeout,
+                                                    applet);
+
         timeout (applet);
 
-        /* Show! */
         gtk_widget_show (label);
 
         return label;
