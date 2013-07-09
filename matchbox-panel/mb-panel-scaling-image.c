@@ -240,16 +240,16 @@ find_icon (GtkIconTheme *icon_theme,
 static void
 reload_icon (MBPanelScalingImage *image, gboolean force)
 {
+        GtkAllocation alloc;
         int size;
         char *file;
         GdkPixbuf *pixbuf;
         GError *error;
 
         /* Determine the required icon size */
-        if (image->priv->orientation == GTK_ORIENTATION_HORIZONTAL)
-                size = GTK_WIDGET (image)->allocation.height;
-        else
-                size = GTK_WIDGET (image)->allocation.width;
+        gtk_widget_get_allocation (GTK_WIDGET (image), &alloc);
+        size = image->priv->orientation == GTK_ORIENTATION_HORIZONTAL
+                ? alloc.height : alloc.width;
 
         if (!force && size == image->priv->size) {
                 return;
@@ -302,7 +302,9 @@ static void
 icon_theme_changed_cb (GtkIconTheme   *icon_theme,
                        MBPanelScalingImage *image)
 {
-        if (!gtk_widget_get_realized (GTK_WIDGET (image)))
+        GtkWidget *widget = GTK_WIDGET (image);
+
+        if (!gtk_widget_get_realized (widget))
                 return;
 
         clear_cache (image);
@@ -320,7 +322,9 @@ mb_panel_scaling_image_size_allocate (GtkWidget *widget,
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->size_allocate (widget, allocation);
 
-        reload_icon (image, FALSE);
+        if (gtk_widget_get_realized (widget)) {
+                reload_icon (image, FALSE);
+        }
 }
 
 static void
