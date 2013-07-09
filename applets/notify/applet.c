@@ -1,4 +1,4 @@
-/* 
+/*
  * (C) 2008 OpenedHand Ltd.
  *
  * Author: Ross Burton <ross@openedhand.com>
@@ -20,9 +20,13 @@ reposition (GtkWindow *window)
 
   screen = gtk_window_get_screen (window);
 
-  gtk_widget_size_request ((GtkWidget*)window, &req);
+  gtk_widget_get_preferred_size (GTK_WIDGET (window), &req, NULL);
+
   if (req.height) {
     gtk_window_resize (window, req.width, req.height);
+    /* TODO: get the primary monitor and then use
+       gdk_screen_get_monitor_geometry() to get the geometry of the primary
+       display, not the overall screen. */
     gtk_window_move (window,
                      gdk_screen_get_width (screen) - req.width,
                      gdk_screen_get_height (screen) - req.height);
@@ -45,7 +49,7 @@ find_widget (GtkContainer *container, guint32 id)
 {
   GList *children, *l;
   GtkWidget *w;
-  
+
   children = gtk_container_get_children (container);
   l = g_list_find_custom (children, GINT_TO_POINTER (id), id_compare);
   w = l ? l->data : NULL;
@@ -86,7 +90,7 @@ on_notification_closed (MbNotifyStore *store, guint id, guint reason, GtkWindow 
   w = find_widget ((GtkContainer*)box, id);
   if (w)
     gtk_container_remove (GTK_CONTAINER (box), w);
-  
+
   reposition (window);
 }
 
@@ -95,14 +99,15 @@ mb_panel_applet_create (const char *id, GtkOrientation orientation)
 {
   GtkWidget *window, *box;
   MbNotifyStore *notify;
-  
+
   window = gtk_window_new (GTK_WINDOW_POPUP);
   gtk_widget_set_name (window, "MbNotificationBox");
-  
+  gtk_window_set_gravity (GTK_WINDOW (window), GDK_GRAVITY_SOUTH_EAST);
+
   box = gtk_vbox_new (TRUE, 0);
   gtk_container_add (GTK_CONTAINER (window), box);
   gtk_widget_show_all (window);
-  
+
   notify = mb_notify_store_new ();
   g_signal_connect (notify, "notification-added", G_CALLBACK (on_notification_added), window);
   g_signal_connect (notify, "notification-closed", G_CALLBACK (on_notification_closed), window);
