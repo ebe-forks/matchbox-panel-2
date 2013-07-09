@@ -1,4 +1,4 @@
-/* 
+/*
  * (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
@@ -20,7 +20,7 @@ typedef struct {
         gboolean active;
 
         Atom atom;
-        
+
         GdkWindow *root_window;
 } ShowDesktopApplet;
 
@@ -50,7 +50,7 @@ set_active (ShowDesktopApplet *applet, gboolean active)
         applet->active = active;
 
         /* TODO: remove this function and instead use a toggle button? */
-        
+
         icon = "panel-user-desktop";
 
         mb_panel_scaling_image_set_icon (applet->image, icon);
@@ -71,8 +71,7 @@ sync_applet (ShowDesktopApplet *applet)
 
         gdk_error_trap_push ();
         result = XGetWindowProperty (GDK_DISPLAY_XDISPLAY (display),
-                                     GDK_WINDOW_XWINDOW
-                                            (applet->root_window),
+                                     GDK_WINDOW_XID (applet->root_window),
                                      applet->atom,
                                      0,
                                      G_MAXLONG,
@@ -160,13 +159,13 @@ button_clicked_cb (GtkButton         *button,
 
         widget = GTK_WIDGET (button);
         screen = GDK_SCREEN_XSCREEN (gtk_widget_get_screen (widget));
-  
+
         xev.xclient.type = ClientMessage;
         xev.xclient.serial = 0;
         xev.xclient.send_event = True;
         xev.xclient.display = DisplayOfScreen (screen);
         xev.xclient.window = RootWindowOfScreen (screen);
-        xev.xclient.message_type = applet->atom; 
+        xev.xclient.message_type = applet->atom;
         xev.xclient.format = 32;
         xev.xclient.data.l[0] = !applet->active;
         xev.xclient.data.l[1] = 0;
@@ -194,12 +193,10 @@ mb_panel_applet_create (const char    *id,
         ShowDesktopApplet *applet;
         GtkWidget *button, *image;
 
-        /* Create applet data structure */
         applet = g_slice_new0 (ShowDesktopApplet);
 
         applet->root_window = NULL;
 
-        /* Create button */
         button = gtk_button_new ();
         applet->button = GTK_BUTTON (button);
 
@@ -231,7 +228,6 @@ mb_panel_applet_create (const char    *id,
                            (GWeakNotify) show_desktop_applet_free,
                            applet);
 
-        /* Show! */
         gtk_widget_show_all (button);
 
         return button;
