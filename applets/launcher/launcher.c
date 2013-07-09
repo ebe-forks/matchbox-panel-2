@@ -143,6 +143,7 @@ button_release_event_cb (GtkWidget      *event_box,
 {
         int x, y;
         pid_t child_pid = 0;
+        GtkAllocation allocation;
 #ifdef USE_LIBSN
         SnLauncherContext *context;
 #endif
@@ -154,16 +155,17 @@ button_release_event_cb (GtkWidget      *event_box,
 
         /* Only process if the button was released inside the button */
         gtk_widget_translate_coordinates (event_box,
-                                          event_box->parent,
+                                          gtk_widget_get_parent (event_box),
                                           event->x,
                                           event->y,
                                           &x,
                                           &y);
 
-        if (x < event_box->allocation.x ||
-            x > event_box->allocation.x + event_box->allocation.width ||
-            y < event_box->allocation.y ||
-            y > event_box->allocation.y + event_box->allocation.height)
+        gtk_widget_get_allocation (event_box, &allocation);
+        if (x < allocation.x ||
+            x > allocation.x + allocation.width ||
+            y < allocation.y ||
+            y > allocation.y + allocation.height)
                 return TRUE;
 
 #ifdef USE_LIBSN
