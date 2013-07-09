@@ -17,10 +17,12 @@ GNOME_COMPILE_WARNINGS
 # base deps
 PKG_CHECK_MODULES(MATCHBOX_PANEL,
                   glib-2.0
+                  gmodule-export-2.0
                   x11
-                  gdk-x11-2.0
-                  gtk+-2.0 >= 2.18
-                  gmodule-export-2.0)
+                  gdk-x11-3.0
+                  gtk+-3.0)
+
+AC_DEFINE_UNQUOTED(GDK_VERSION_MIN_REQUIRED, [GDK_VERSION_3_0], [GTK+ API we require])
 
 # startup-notification
 AC_ARG_ENABLE(startup_notification,
