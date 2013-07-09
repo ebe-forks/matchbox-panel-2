@@ -1,4 +1,4 @@
-/* 
+/*
  * (C) 2006 OpenedHand Ltd.
  *
  * Author: Jorn Baayen <jorn@openedhand.com>
@@ -11,11 +11,9 @@
 typedef struct {
         MBPanelScalingImage *image;
         const char *last_icon;
-
         guint timeout_id;
 } BatteryApplet;
 
-/* Applet destroyed */
 static void
 battery_applet_free (BatteryApplet *applet)
 {
@@ -24,13 +22,12 @@ battery_applet_free (BatteryApplet *applet)
         g_slice_free (BatteryApplet, applet);
 }
 
-/* Called every 5 minutes */
 static gboolean
 timeout (BatteryApplet *applet)
 {
 	const char *icon;
 
-	icon = pm_battery_icon();
+	icon = pm_battery_icon ();
 
 	if (!icon)
 		return FALSE;
@@ -40,8 +37,7 @@ timeout (BatteryApplet *applet)
                 return TRUE;
 
         applet->last_icon = icon;
-        
-        /* Load icon */
+
         mb_panel_scaling_image_set_icon (applet->image, icon);
 
         /* Keep going */
@@ -59,12 +55,10 @@ mb_panel_applet_create (const char    *id,
         if (!pm_support())
                 return NULL;
 
-        /* Create applet data structure */
         applet = g_slice_new (BatteryApplet);
 
         applet->last_icon = NULL;
 
-        /* Create image */
         image = mb_panel_scaling_image_new (orientation, NULL);
         applet->image = MB_PANEL_SCALING_IMAGE (image);
 
@@ -75,13 +69,12 @@ mb_panel_applet_create (const char    *id,
                            applet);
 
         /* Set up a timeout that will be called every 5 minutes */
-        applet->timeout_id = g_timeout_add (5 * 60 * 1000,
-                                            (GSourceFunc) timeout,
-                                            applet);
+        applet->timeout_id = g_timeout_add_seconds (5 * 60,
+                                                    (GSourceFunc) timeout,
+                                                    applet);
 
         timeout (applet);
 
-        /* Show! */
         gtk_widget_show (image);
 
         return image;
