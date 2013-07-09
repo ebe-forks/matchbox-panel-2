@@ -302,37 +302,60 @@ init_notify (StartupApplet *applet)
   return TRUE;
 }
 
+static void
+screen_changed_cb (GtkWidget     *widget,
+                   GdkScreen     *old_screen,
+                   StartupApplet *applet)
+{
+  GdkScreen *screen;
+  GdkDisplay *display;
+  Display *xdisplay;
+
+  if (applet->root_window) {
+    gdk_window_remove_filter (applet->root_window,
+                              (GdkFilterFunc) filter_func,
+                              applet);
+  }
+
+  screen = gtk_widget_get_screen (widget);
+  display = gdk_screen_get_display (screen);
+
+  xdisplay = GDK_DISPLAY_XDISPLAY (display);
+
+  applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
+
+  applet->sn_context = sn_monitor_context_new (applet->sn_display,
+                                               gdk_screen_get_number (screen),
+                                               monitor_event_func,
+                                               applet, NULL);
+
+  /* We have to select for property events on at least one root window (but not
+   * all as INITIATE messages go to all root windows)
+   */
+  XSelectInput (xdisplay, DefaultRootWindow (xdisplay), PropertyChangeMask);
+
+  applet->root_window = gdk_x11_window_lookup_for_display
+    (display, DefaultRootWindow (xdisplay));
+
+  gdk_window_add_filter (applet->root_window, (GdkFilterFunc)filter_func, applet);
+}
+
 G_MODULE_EXPORT GtkWidget *
 mb_panel_applet_create (const char *id, GtkOrientation orientation)
 {
   StartupApplet *applet;
   GtkWidget *widget;
-  Display *xdisplay;
-  
+
   applet = g_slice_new0 (StartupApplet);
 
-  widget = gtk_hbox_new (0, FALSE); /* grr */
+  widget = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   g_object_weak_ref (G_OBJECT (widget), (GWeakNotify)startup_applet_free, applet);
 
   if (init_notify (applet)) {
-    xdisplay = GDK_DISPLAY_XDISPLAY (gtk_widget_get_display (widget));
-    
-    applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
-    
-    applet->sn_context = sn_monitor_context_new (applet->sn_display,
-                                                 DefaultScreen (xdisplay),
-                                                 monitor_event_func,
-                                                 applet, NULL);
-
-    /* We have to select for property events on at least one root window (but not
-     * all as INITIATE messages go to all root windows)
-     */
-    XSelectInput (xdisplay, DefaultRootWindow (xdisplay), PropertyChangeMask);
-    
-    applet->root_window = gdk_window_lookup_for_display
-      (gdk_x11_lookup_xdisplay (xdisplay), 0);
-    
-    gdk_window_add_filter (applet->root_window, (GdkFilterFunc)filter_func, applet);
+          g_signal_connect (widget,
+                            "screen-changed",
+                            G_CALLBACK (screen_changed_cb),
+                            applet);
   }
 
   /* TODO: need to fix the panel to support invisible widgets */
