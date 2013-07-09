@@ -1,10 +1,13 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
+
 /*
  * startup-monitor - A tray app that provides feedback
  *                             on application startup.
  *
- * Copyright 2004 - 2007, Openedhand Ltd.
+ * Copyright 2004 - 2013, Intel Corp
  * By Matthew Allum <mallum@o-hand.com>,
  * Stefan Schmidt <stefan@openmoko.org>
+ * Ross Burton <ross.burton@intel.com>
  *
  * Based on mb-applet-startup-monitor
  *
@@ -16,7 +19,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
  */
 
 #include <stdio.h>
@@ -38,7 +40,7 @@
 #include <matchbox-panel/mb-panel.h>
 #include <matchbox-panel/mb-panel-scaling-image.h>
 
-#define TIMEOUT                   20
+#define TIMEOUT 20
 #define HOURGLASS_PIXMAPS 8
 
 typedef struct LaunchItem {
@@ -66,6 +68,7 @@ static gboolean timeout (StartupApplet *applet);
 static void
 startup_applet_free (StartupApplet *applet)
 {
+	/* TODO: this should be in unrealize */
         gdk_window_remove_filter (applet->root_window,
                                   (GdkFilterFunc) filter_func, applet);
         g_slice_free (StartupApplet, applet);
@@ -218,12 +221,38 @@ filter_func (GdkXEvent     *gdk_xevent,
         return GDK_FILTER_CONTINUE;
 }
 
+static void
+on_realize (GtkWidget *widget, gpointer user_data)
+{
+        StartupApplet *applet = user_data;
+        GdkDisplay *display;
+        GdkScreen *screen;
+        Display *xdisplay;
+
+        screen = gtk_widget_get_screen (widget);
+        display = gdk_screen_get_display (screen);
+        xdisplay = GDK_DISPLAY_XDISPLAY (display);
+
+        applet->root_window = gdk_screen_get_root_window (screen);
+
+        applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
+        applet->sn_context = sn_monitor_context_new (applet->sn_display,
+                                                     gdk_screen_get_number (screen),
+                                                     monitor_event_func,
+                                                     applet, NULL);
+
+        XSelectInput (xdisplay,
+                      GDK_WINDOW_XID (applet->root_window),
+                      PropertyChangeMask);
+
+        gdk_window_add_filter (applet->root_window, (GdkFilterFunc)filter_func, applet);
+}
+
 G_MODULE_EXPORT GtkWidget *
 mb_panel_applet_create (const char    *id,
                         GtkOrientation orientation)
 {
         StartupApplet *applet;
-        Display *xdisplay;
 
         /* Create applet data structure */
         applet = g_slice_new0 (StartupApplet);
@@ -242,31 +271,7 @@ mb_panel_applet_create (const char    *id,
         g_object_weak_ref (G_OBJECT(applet->image),
                            (GWeakNotify) startup_applet_free, applet);
 
-        xdisplay = GDK_DISPLAY_XDISPLAY
-                                (gtk_widget_get_display
-                                        (GTK_WIDGET (applet->image)));
-
-        applet->sn_display = sn_display_new (xdisplay, NULL, NULL);
-
-        applet->sn_context = sn_monitor_context_new (applet->sn_display,
-                                                     DefaultScreen(xdisplay),
-                                                     monitor_event_func,
-                                                     (void *) applet,
-                                                     NULL);
-
-        /* We have to select for property events on at least one
-         * root window (but not all as INITIATE messages go to
-         * all root windows)
-         */
-        XSelectInput (xdisplay,
-                      DefaultRootWindow(xdisplay), PropertyChangeMask);
-
-        applet->root_window =
-                gdk_window_lookup_for_display
-                        (gdk_x11_lookup_xdisplay (xdisplay), 0);
-
-        gdk_window_add_filter (applet->root_window,
-                               (GdkFilterFunc) filter_func, applet);
+        g_signal_connect (applet->image, "realize", G_CALLBACK (on_realize), applet);
 
         return GTK_WIDGET (applet->image);
 }
