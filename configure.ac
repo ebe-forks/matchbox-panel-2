@@ -105,6 +105,7 @@ applets/startup/Makefile
 applets/startup/data/Makefile
 applets/systray/Makefile
 applets/windowselector/Makefile
+data/Makefile
 po/Makefile.in
 po/Makefile
 ])

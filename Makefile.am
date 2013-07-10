@@ -1,4 +1,4 @@
-SUBDIRS = matchbox-panel applets po
+SUBDIRS = matchbox-panel applets data po
 
 pcdatadir = $(libdir)/pkgconfig
 dist_pcdata_DATA= matchbox-panel.pc
