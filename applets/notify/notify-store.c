@@ -170,11 +170,13 @@ notification_manager_get_server_information (MbNotifyStore *notify,
                                              gchar **name,
                                              gchar **vendor,
                                              gchar **version,
+                                             gchar **spec_version,
                                              GError *error)
 {
   *name = g_strdup ("Matchbox Panel Notification Manager");
   *vendor = g_strdup ("OpenedHand");
   *version = g_strdup (VERSION);
+  *spec_version = g_strdup ("1.0");
   return TRUE;
 }
 
