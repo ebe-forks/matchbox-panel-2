@@ -1,3 +1,4 @@
+/* -*- Mode: C; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 8 -*- */
 /*
  * (C) 2006, 2007 OpenedHand Ltd.
  *
@@ -158,7 +159,7 @@ clear_cache (MBPanelScalingImage *image)
 {
         if (!image->priv->caching)
                 return;
-        
+
         g_hash_table_foreach_remove (image->priv->cache,
                                      return_true,
                                      NULL);
@@ -208,18 +209,18 @@ find_icon (GtkIconTheme *icon_theme,
 
         prefixed = g_strconcat ("panel-", stripped, NULL);
 
-        info = gtk_icon_theme_lookup_icon (icon_theme, 
+        info = gtk_icon_theme_lookup_icon (icon_theme,
                                            prefixed,
                                            size,
                                            0);
 
         if (info == NULL) {
-          info = gtk_icon_theme_lookup_icon (icon_theme, 
+          info = gtk_icon_theme_lookup_icon (icon_theme,
                                              stripped,
                                              size,
                                              0);
         }
-        
+
         g_free (stripped);
         g_free (prefixed);
 
@@ -318,7 +319,7 @@ mb_panel_scaling_image_size_allocate (GtkWidget *widget,
 
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->size_allocate (widget, allocation);
-        
+
         reload_icon (image, FALSE);
 }
 
@@ -328,7 +329,7 @@ mb_panel_scaling_image_realize (GtkWidget *widget)
         GtkWidgetClass *widget_class;
 
         reload_icon (MB_PANEL_SCALING_IMAGE (widget), TRUE);
-        
+
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->realize (widget);
 }
@@ -382,7 +383,7 @@ mb_panel_scaling_image_screen_changed (GtkWidget *widget,
 
                 reload_icon (MB_PANEL_SCALING_IMAGE (widget), TRUE);
         }
-        
+
         widget_class = GTK_WIDGET_CLASS (mb_panel_scaling_image_parent_class);
         widget_class->screen_changed (widget, old_screen);
 }
@@ -513,7 +514,7 @@ const char *
 mb_panel_scaling_image_get_icon (MBPanelScalingImage *image)
 {
         g_return_val_if_fail (MB_PANEL_IS_SCALING_IMAGE (image), NULL);
-        
+
         return image->priv->icon;
 }
 
@@ -522,7 +523,7 @@ mb_panel_scaling_image_get_icon (MBPanelScalingImage *image)
  * @image: A #MBPanelScalingImage
  * @caching: TRUE if image caching is desired
  *
- * Sets the caching mode to @caching. If @caching is TRUE, 
+ * Sets the caching mode to @caching. If @caching is TRUE,
  * #GdkPixbuf objects previously loaded by @image will be kept around.
  * Use this if you want to quickly alternate between a fixed set of images.
  *
@@ -562,6 +563,6 @@ gboolean
 mb_panel_scaling_image_get_caching (MBPanelScalingImage *image)
 {
         g_return_val_if_fail (MB_PANEL_IS_SCALING_IMAGE (image), FALSE);
-        
+
         return image->priv->caching;
 }
