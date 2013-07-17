@@ -374,7 +374,7 @@ main (int argc, char **argv)
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
         gtk_widget_set_name (window, "MatchboxPanel");
         gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DOCK);
-        gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
+        gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
 
         /* No key focus please */
         gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
