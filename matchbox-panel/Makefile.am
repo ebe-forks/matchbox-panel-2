@@ -7,11 +7,11 @@ AM_CFLAGS = $(WARN_CFLAGS)
 
 matchbox_panelincdir = $(pkgincludedir)
 
-matchbox_panelinc_HEADERS = mb-panel.h mb-panel-scaling-image.h
+matchbox_panelinc_HEADERS = mb-panel.h mb-panel-scaling-image.h mb-panel-scaling-image2.h
 
 bin_PROGRAMS = matchbox-panel
 
-matchbox_panel_SOURCES = mb-panel.c mb-panel-scaling-image.c
+matchbox_panel_SOURCES = mb-panel.c mb-panel-scaling-image.c mb-panel-scaling-image2.c
 
 matchbox_panel_LDADD = $(MATCHBOX_PANEL_LIBS)
 
