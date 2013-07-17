@@ -261,7 +261,8 @@ main (int argc, char **argv)
         GOptionGroup *option_group;
         GError *error;
         char *start_applets = NULL, *end_applets = NULL;
-        char *edge_string = NULL;
+        char *edge_string = NULL, *mode_string = NULL;
+        enum { MODE_DOCK, MODE_TITLEBAR, MODE_WINDOW } mode = MODE_DOCK;
         int size = DEFAULT_HEIGHT;
         int screen_num = -1;
         int monitor_num = -1;
@@ -270,7 +271,6 @@ main (int argc, char **argv)
         GdkDisplay *display;
         GdkScreen *screen;
         GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
-        gboolean in_titlebar = FALSE;
         GdkRectangle screen_geom;
 
         /* TODO: add these as groups (applets / position) */
@@ -285,13 +285,12 @@ main (int argc, char **argv)
                 { "monitor", 'm', 0, G_OPTION_ARG_INT, &monitor_num,
                   N_("Monitor number"), N_("MONITOR") },
 
-                { "titlebar", 't', 0, G_OPTION_ARG_NONE, &in_titlebar,
-                  N_("Display in window titlebar (with Matchbox theme support)"), NULL },
                 { "edge", 'e', 0, G_OPTION_ARG_STRING, &edge_string,
                   N_("Panel edge"), N_("TOP|BOTTON|LEFT|RIGHT") },
                 { "size", 's', 0, G_OPTION_ARG_INT, &size,
                   N_("Panel size"), N_("PIXELS")},
-
+                { "mode", 'm', 0, G_OPTION_ARG_STRING, &mode_string,
+                  N_("Panel mode"), N_("DOCK|TITLEBAR|WINDOW") },
                 { NULL }
         };
 
@@ -327,12 +326,6 @@ main (int argc, char **argv)
 
         g_option_context_free (option_context);
 
-        /* Can't be in the titlebar *and* on an edge, so check for this and exit */
-        if (in_titlebar && edge_string) {
-                g_printerr ("Cannot specify both --edge and --titlebar\n");
-                return 1;
-        }
-
         if (edge_string) {
                 if (g_ascii_strcasecmp (edge_string, "top") == 0) {
                         edge = GTK_POS_TOP;
@@ -347,6 +340,20 @@ main (int argc, char **argv)
                         return 1;
                 }
                 g_free (edge_string);
+        }
+
+        if (mode_string) {
+                if (g_ascii_strcasecmp (mode_string, "dock") == 0) {
+                        mode = MODE_DOCK;
+                } else if (g_ascii_strcasecmp (mode_string, "titlebar") == 0) {
+                        mode = MODE_TITLEBAR;
+                } else if (g_ascii_strcasecmp (mode_string, "window") == 0) {
+                        mode = MODE_WINDOW;
+                } else {
+                        g_printerr ("Unparsable mode '%s', expecting dock/titlebar/window\n", mode_string);
+                        return 1;
+                }
+                g_free (mode_string);
         }
 
         /* Set app name */
@@ -373,16 +380,18 @@ main (int argc, char **argv)
         /* Create window */
         window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
         gtk_widget_set_name (window, "MatchboxPanel");
-        gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DOCK);
         gtk_window_set_has_resize_grip (GTK_WINDOW (window), FALSE);
 
-        /* No key focus please */
-        gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
+        if (mode != MODE_WINDOW) {
+                gtk_window_set_type_hint (GTK_WINDOW (window), GDK_WINDOW_TYPE_HINT_DOCK);
+                gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
+        }
 
         gtk_widget_realize (window);
 
         /* Set size */
-        if (!in_titlebar) {
+        switch (mode) {
+        case MODE_DOCK:
                 /* TODO: hook this up to GdkScreen:size-changed */
 
                 /* Orientation and size */
@@ -420,6 +429,28 @@ main (int argc, char **argv)
                 }
 
                 set_struts (window, edge, size);
+                break;
+        case MODE_TITLEBAR:
+                /* TODO */
+                break;
+        case MODE_WINDOW:
+                /* Set the size based on half the screen dimensions, and
+                   requested size */
+                switch (edge) {
+                case GTK_POS_TOP:
+                case GTK_POS_BOTTOM:
+                        orientation = GTK_ORIENTATION_HORIZONTAL;
+                        gtk_widget_set_size_request (window,
+                                           screen_geom.width / 2, size);
+                        break;
+                case GTK_POS_LEFT:
+                case GTK_POS_RIGHT:
+                        orientation = GTK_ORIENTATION_VERTICAL;
+                        gtk_widget_set_size_request (window,
+                                           size, screen_geom.height / 2);
+                        break;
+                }
+                break;
         }
 
         /* Add frame */
