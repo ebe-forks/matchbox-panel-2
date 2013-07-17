@@ -11,11 +11,11 @@
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 #include <matchbox-panel/mb-panel.h>
-#include <matchbox-panel/mb-panel-scaling-image.h>
+#include <matchbox-panel/mb-panel-scaling-image2.h>
 
 typedef struct {
         GtkButton *button;
-        MBPanelScalingImage *image;
+        MBPanelScalingImage2 *image;
 
         gboolean active;
 
@@ -45,15 +45,11 @@ show_desktop_applet_free (ShowDesktopApplet *applet)
 static void
 set_active (ShowDesktopApplet *applet, gboolean active)
 {
-        const char *icon;
-
         applet->active = active;
 
         /* TODO: remove this function and instead use a toggle button? */
 
-        icon = "panel-user-desktop";
-
-        mb_panel_scaling_image_set_icon (applet->image, icon);
+        mb_panel_scaling_image2_set_icon (applet->image, "panel-user-desktop");
 }
 
 /* Sync @applet with the _NET_SHOWING_DESKTOP root window property */
@@ -206,8 +202,8 @@ mb_panel_applet_create (const char    *id,
 
         gtk_widget_set_name (button, "MatchboxPanelShowDesktop");
 
-        image = mb_panel_scaling_image_new (orientation, NULL);
-        applet->image = MB_PANEL_SCALING_IMAGE (image);
+        image = mb_panel_scaling_image2_new (orientation, NULL);
+        applet->image = MB_PANEL_SCALING_IMAGE2 (image);
 
         gtk_container_add (GTK_CONTAINER (button), image);
 
