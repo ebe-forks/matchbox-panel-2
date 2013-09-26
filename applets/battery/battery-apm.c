@@ -10,8 +10,6 @@
 int pm_support(void)
 {
 	if (1 == apm_exists ()) {
-                g_warning ("No APM support");
-
                 return 0;
         }
 
