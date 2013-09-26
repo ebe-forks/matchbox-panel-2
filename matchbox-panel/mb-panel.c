@@ -110,10 +110,15 @@ load_applets (const char    *applets_desc,
         applets = g_strsplit (applets_desc, ",", -1);
 
         for (i = 0; applets[i]; i++) {
+                char *s;
                 char **bits;
                 GtkWidget *applet;
 
-                bits = g_strsplit (applets[i], ":", 2);
+                s = applets[i];
+                if (s == NULL || s[0] == '\0')
+                        continue;
+
+                bits = g_strsplit (s, ":", 2);
 
                 applet = load_applet (bits[0],
                                       bits[1],
