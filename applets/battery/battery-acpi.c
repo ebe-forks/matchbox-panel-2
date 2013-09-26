@@ -14,8 +14,6 @@ int batt_state, ac_state;
 int pm_support(void)
 {
 	if(check_acpi_support() == NOT_SUPPORTED){
-		g_warning("No ACPI support\n");
-
 		return 0;
 	}
 
@@ -32,8 +30,9 @@ const char* pm_battery_icon(void)
 	const char *icon;
 	battery_t *binfo;
 
+        /* No battery available (not present, disabled, or something
+           else. Silently do nothing. */
 	if (batt_state != SUCCESS) {
-		g_warning("Couldnt initialize ACPI battery\n");
 		return NULL;
 	}
 
