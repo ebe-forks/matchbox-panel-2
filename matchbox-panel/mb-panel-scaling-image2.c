@@ -327,8 +327,10 @@ mb_panel_scaling_image2_draw (GtkWidget *widget, cairo_t *cr)
 {
         MBPanelScalingImage2 *image = MB_PANEL_SCALING_IMAGE2 (widget);
 
-        gdk_cairo_set_source_pixbuf (cr, image->priv->pixbuf, 0.0, 0.0);
-        cairo_paint (cr);
+        if (image->priv->pixbuf) {
+                gdk_cairo_set_source_pixbuf (cr, image->priv->pixbuf, 0.0, 0.0);
+                cairo_paint (cr);
+        }
         return TRUE;
 }
 
