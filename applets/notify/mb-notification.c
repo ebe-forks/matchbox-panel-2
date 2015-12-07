@@ -85,7 +85,7 @@ mb_notification_init (MbNotification *self)
   gtk_box_pack_start (GTK_BOX (box), priv->image, FALSE, FALSE, 0);
 
   priv->label = gtk_label_new (NULL);
-  gtk_misc_set_alignment (GTK_MISC (priv->label), 0.0, 0.5);
+  gtk_label_set_xalign (GTK_LABEL (priv->label), 0.0);
   gtk_box_pack_start (GTK_BOX (box), priv->label, TRUE, TRUE, 0);
 }
 
