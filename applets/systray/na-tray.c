@@ -538,6 +538,8 @@ static void
 na_tray_draw_box (GtkWidget *box,
 		  cairo_t   *cr)
 {
+  /* Transform to window-relative coordinates */
+  gtk_cairo_transform_to_window (cr, box, gtk_widget_get_window (box));
   gtk_container_foreach (GTK_CONTAINER (box), na_tray_draw_icon, cr);
 }
 
