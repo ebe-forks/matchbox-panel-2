@@ -181,6 +181,12 @@ button_clicked_cb (GtkButton         *button,
 	            &xev);
 }
 
+static void
+realize_cb (GtkWidget *button, ShowDesktopApplet *applet)
+{
+        sync_applet (applet);
+}
+
 G_MODULE_EXPORT GtkWidget *
 mb_panel_applet_create (const char    *id,
                         GtkOrientation orientation)
@@ -215,6 +221,10 @@ mb_panel_applet_create (const char    *id,
         g_signal_connect (button,
                           "clicked",
                           G_CALLBACK (button_clicked_cb),
+                          applet);
+        g_signal_connect (button,
+                          "realize",
+                          G_CALLBACK (realize_cb),
                           applet);
 
         g_object_weak_ref (G_OBJECT (button),
