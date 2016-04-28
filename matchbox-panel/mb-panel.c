@@ -387,8 +387,6 @@ main (int argc, char **argv)
                 gtk_window_set_accept_focus (GTK_WINDOW (window), FALSE);
         }
 
-        gtk_widget_realize (window);
-
         /* Set size */
         switch (mode) {
         case MODE_DOCK:
@@ -427,8 +425,6 @@ main (int argc, char **argv)
                                          screen_geom.x,
                                          screen_geom.y + screen_geom.height - size);
                 }
-
-                set_struts (window, edge, size);
                 break;
         case MODE_TITLEBAR:
                 /* TODO */
@@ -452,6 +448,10 @@ main (int argc, char **argv)
                 }
                 break;
         }
+
+        gtk_widget_realize (window);
+        if (mode == MODE_DOCK)
+		set_struts (window, edge, size);
 
         /* Add frame */
         frame = gtk_frame_new (NULL);
