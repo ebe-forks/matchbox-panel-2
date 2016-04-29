@@ -15,7 +15,7 @@
 #include <gdk/gdkx.h>
 
 #include <matchbox-panel/mb-panel.h>
-#include <matchbox-panel/mb-panel-scaling-image.h>
+#include <matchbox-panel/mb-panel-scaling-image2.h>
 
 #define DEFAULT_WINDOW_ICON_NAME "application-x-executable"
 
@@ -792,7 +792,7 @@ mb_panel_applet_create (const char    *id,
 
         switch (applet->mode) {
         case MODE_STATIC_ICON:
-                applet->image = mb_panel_scaling_image_new (orientation,
+                applet->image = mb_panel_scaling_image2_new (orientation,
                         "panel-task-switcher");
                 gtk_container_add (GTK_CONTAINER (applet->button),
                                 applet->image);
