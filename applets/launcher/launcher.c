@@ -12,7 +12,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
 #include <matchbox-panel/mb-panel.h>
-#include <matchbox-panel/mb-panel-scaling-image.h>
+#include <matchbox-panel/mb-panel-scaling-image2.h>
 
 #ifdef USE_LIBSN
   #define SN_API_NOT_YET_FROZEN 1
@@ -20,7 +20,7 @@
 #endif
 
 typedef struct {
-        GtkImage *image;
+        MBPanelScalingImage2 *image;
 
         gboolean button_down;
 
@@ -331,7 +331,7 @@ mb_panel_applet_create (const char    *id,
 
         gtk_widget_set_name (event_box, "MatchboxPanelLauncher");
 
-        image = mb_panel_scaling_image_new (orientation, icon);
+        image = mb_panel_scaling_image2_new (orientation, icon);
         g_free (icon);
 
         gtk_container_add (GTK_CONTAINER (event_box), image);
@@ -339,7 +339,7 @@ mb_panel_applet_create (const char    *id,
         /* Set up applet structure */
         applet = g_slice_new0 (LauncherApplet);
 
-        applet->image = GTK_IMAGE (image);
+        applet->image = MB_PANEL_SCALING_IMAGE2 (image);
         
         applet->button_down = FALSE;
 
