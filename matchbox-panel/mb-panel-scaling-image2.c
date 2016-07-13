@@ -220,7 +220,6 @@ reload_icon (MBPanelScalingImage2 *image, gboolean force)
 
         if (!image->priv->icon) {
                 g_clear_object (&image->priv->pixbuf);
-                gtk_image_set_from_pixbuf (GTK_IMAGE (image), NULL);
                 gtk_widget_queue_resize (GTK_WIDGET (image));
                 return;
         }
