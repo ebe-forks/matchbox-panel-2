@@ -5,6 +5,7 @@
  */
 
 #include "battery.h"
+#include <glib.h>
 #include <libacpi.h>
 
 global_t global;

@@ -7,9 +7,11 @@
  */
 
 #include "battery.h"
+#include <matchbox-panel/mb-panel.h>
+#include <matchbox-panel/mb-panel-scaling-image2.h>
 
 typedef struct {
-        MBPanelScalingImage *image;
+        MBPanelScalingImage2 *image;
         const char *last_icon;
         guint timeout_id;
 } BatteryApplet;
@@ -38,7 +40,7 @@ timeout (BatteryApplet *applet)
 
         applet->last_icon = icon;
 
-        mb_panel_scaling_image_set_icon (applet->image, icon);
+        mb_panel_scaling_image2_set_icon (applet->image, icon);
 
         /* Keep going */
         return TRUE;
@@ -59,8 +61,8 @@ mb_panel_applet_create (const char    *id,
 
         applet->last_icon = NULL;
 
-        image = mb_panel_scaling_image_new (orientation, NULL);
-        applet->image = MB_PANEL_SCALING_IMAGE (image);
+        image = mb_panel_scaling_image2_new (orientation, NULL);
+        applet->image = MB_PANEL_SCALING_IMAGE2 (image);
 
         gtk_widget_set_name (image, "MatchboxPanelBatteryMonitor");
 
