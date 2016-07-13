@@ -38,7 +38,7 @@
 
 #include <string.h>
 #include <matchbox-panel/mb-panel.h>
-#include <matchbox-panel/mb-panel-scaling-image.h>
+#include <matchbox-panel/mb-panel-scaling-image2.h>
 
 #define TIMEOUT 20
 #define HOURGLASS_PIXMAPS 8
@@ -50,7 +50,7 @@ typedef struct LaunchItem {
 } LaunchItem;
 
 typedef struct {
-        MBPanelScalingImage *image;
+        MBPanelScalingImage2 *image;
         GdkWindow *root_window;
         SnDisplay *sn_display;
         SnMonitorContext *sn_context;
@@ -201,7 +201,7 @@ timeout (StartupApplet *applet)
         sprintf (icon, "%s/hourglass-%i.png", DATADIR,
                  applet->hourglass_cur_frame_n);
 
-        mb_panel_scaling_image_set_icon (applet->image, icon);
+        mb_panel_scaling_image2_set_icon (applet->image, icon);
 
         free (icon);
 
@@ -261,10 +261,8 @@ mb_panel_applet_create (const char    *id,
         applet->hourglass_shown = FALSE;
 
         /* Create image */
-        applet->image = MB_PANEL_SCALING_IMAGE
-                              (mb_panel_scaling_image_new (orientation, NULL));
-        mb_panel_scaling_image_set_caching (applet->image, TRUE);
-
+        applet->image = MB_PANEL_SCALING_IMAGE2
+                              (mb_panel_scaling_image2_new (orientation, NULL));
         gtk_widget_set_name (GTK_WIDGET(applet->image),
                              "MatchboxPanelStartupMonitor");
 
