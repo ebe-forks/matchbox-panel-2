@@ -1,9 +1,0 @@
-2007-08-08  Rob Bradford  <rob@openedhand.com>
-
-	* POTFILES.in:
-	Add source files to POTFILES.in.
-
-2007-04-10  Matthew Allum  <mallum@openedhand.com>
-
-	* Makefile.in.in:
-

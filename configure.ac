@@ -84,7 +84,8 @@ GETTEXT_PACKAGE=matchbox-panel
 AC_SUBST(GETTEXT_PACKAGE)
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, ["$GETTEXT_PACKAGE"], 
   [Define the gettext package to be used])
-AM_GLIB_GNU_GETTEXT
+AM_GNU_GETTEXT_VERSION([0.19.8])
+AM_GNU_GETTEXT([external])
 
 # output stuff
 AC_OUTPUT([

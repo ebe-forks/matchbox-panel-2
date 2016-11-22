@@ -1,3 +1,5 @@
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = matchbox-panel applets data po
 
 pcdatadir = $(libdir)/pkgconfig
