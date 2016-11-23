@@ -6,7 +6,6 @@ applets/battery/battery.c
 applets/battery/battery-acpi.c
 applets/launcher/launcher.c
 applets/showdesktop/showdesktop.c
-applets/startup-notify/marshal.c
 applets/startup-notify/startup.c
 applets/systray/systray.c
 applets/systray/na-tray-manager.c
@@ -15,7 +14,6 @@ applets/systray/fixedtip.c
 applets/systray/na-tray.c
 applets/clock/clock.c
 applets/notify/mb-notification.c
-applets/notify/marshal.c
 applets/notify/notify-store.c
 applets/notify/applet.c
 applets/brightness/brightness.c
