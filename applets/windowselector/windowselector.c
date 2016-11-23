@@ -265,7 +265,7 @@ window_get_icon (WindowSelectorApplet *applet,
                 cur_height = datap[1];
                 cur_size = (cur_width + cur_height) / 2;
 
-                if (nitems < (2 + cur_width * cur_height))
+                if (nitems < (gulong)(2 + cur_width * cur_height))
                         break;
 
                 if (!best_data) {
@@ -443,7 +443,8 @@ rebuild_menu (WindowSelectorApplet *applet)
         GList *kids;
         GdkDisplay *display;
         Atom type;
-        int format, result, i;
+        int format, result;
+        gulong i;
         gulong nitems, bytes_after;
         Window *windows;
 
